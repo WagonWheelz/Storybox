@@ -1,0 +1,14 @@
+{
+    "test2.txt": {
+        "Jakob": "de3d1ac9-486b-4cfe-862c-a5326ad6dd86",
+        "server": "637db400-1f8a-451e-8419-9bae72ca22a4"
+    },
+    "teststory.txt": {
+        "Server": "Jakob",
+        "Jakob": "Jakob"
+    },
+    "test/test2.txt": {
+        "Jakob": "de3d1ac9-486b-4cfe-862c-a5326ad6dd86",
+        "server": "c67e27c0-845f-43a1-afaf-49209027c713"
+    }
+}

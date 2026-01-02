@@ -1,0 +1,18 @@
+{
+    "teststory.txt": {
+        "display_title": "teststory",
+        "synopsis": "No synopsis written.",
+        "tags": [],
+        "created_at": "2026-01-02"
+    },
+    "test\\test2.txt": {
+        "display_title": "test2",
+        "synopsis": "No synopsis written.",
+        "tags": [
+            "Combat",
+            "Lore",
+            "test"
+        ],
+        "created_at": "2026-01-02"
+    }
+}
