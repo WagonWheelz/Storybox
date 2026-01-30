@@ -1,14 +1,29 @@
 import re
 import html
 import os
+import markdown
 
 ACTION_STYLE = 'text-indigo-300 italic font-medium'
 
-def format_text_content(text):
+def render_star_rp(text):
+    """Legacy format: *actions* are highlighted."""
     safe_text = html.escape(text)
     return re.sub(
         r'\*([^*]+)\*', 
         f'<span class="{ACTION_STYLE}">*\\1*</span>', 
+        safe_text
+    )
+
+def render_markdown(text):
+    """Standard Markdown rendering."""
+    return markdown.markdown(text, extensions=['extra', 'nl2br'])
+
+def render_novel(text):
+    """Text is plain, but quotes are highlighted."""
+    safe_text = html.escape(text)
+    return re.sub(
+        r'"([^"]+)"', 
+        f'<span class="text-white font-serif">"\\1"</span>', 
         safe_text
     )
 
@@ -35,7 +50,7 @@ def get_file_stats(filepath):
     except:
         return {"msg_count": 0, "top_characters": [], "date": "Unknown"}
 
-def parse_file(filepath):
+def parse_file(filepath, format_type="star_rp"):
     blocks = []
     stats = {}
     current_block = None
@@ -46,6 +61,7 @@ def parse_file(filepath):
                 raw_line = line.strip()
                 if not raw_line: continue
 
+                # 1. Handle OOC (( ... ))
                 if raw_line.startswith("((") and raw_line.endswith("))"):
                     if current_block:
                         blocks.append(current_block)
@@ -53,29 +69,60 @@ def parse_file(filepath):
                     blocks.append({"type": "ooc", "text": html.escape(raw_line.strip("() "))})
                     continue
 
+                # 2. Check for Speaker
                 speaker_match = re.match(r"^([A-Za-z0-9_ -]+):\s*(.*)", raw_line)
+                
                 if speaker_match:
                     if current_block: blocks.append(current_block)
+                    
                     name = speaker_match.group(1)
                     content = speaker_match.group(2)
+
                     if name not in stats: stats[name] = 0
                     stats[name] += 1
+                    
                     current_block = {"type": "dialogue", "speaker": name, "lines": []}
-                    if content:
+                    
+                    # RENDER CONTENT BASED ON FORMAT
+                    rendered_content = ""
+                    is_action = False
+
+                    if format_type == "markdown":
+                        rendered_content = render_markdown(content)
+                    elif format_type == "novel":
+                        rendered_content = render_novel(content)
+                    else:
                         is_action = content.startswith("*") and content.endswith("*")
-                        current_block["lines"].append({
-                            "is_action_line": is_action,
-                            "content": format_text_content(content)
-                        })
+                        rendered_content = render_star_rp(content)
+
+                    current_block["lines"].append({
+                        "is_action_line": is_action,
+                        "content": rendered_content
+                    })
                 else:
+                    # Append line to previous block
                     if current_block:
-                        is_action = raw_line.startswith("*") and raw_line.endswith("*")
+                        is_action = False
+                        rendered_content = ""
+
+                        if format_type == "markdown":
+                            rendered_content = render_markdown(raw_line)
+                        elif format_type == "novel":
+                            rendered_content = render_novel(raw_line)
+                        else:
+                            is_action = raw_line.startswith("*") and raw_line.endswith("*")
+                            rendered_content = render_star_rp(raw_line)
+
                         current_block["lines"].append({
                             "is_action_line": is_action,
-                            "content": format_text_content(raw_line)
+                            "content": rendered_content
                         })
                     else:
-                        blocks.append({"type": "narrative", "text": format_text_content(raw_line)})
+                        # Narrative block
+                        rendered_narrative = ""
+                        if format_type == "markdown": rendered_narrative = render_markdown(raw_line)
+                        else: rendered_narrative = render_star_rp(raw_line)
+                        blocks.append({"type": "narrative", "text": rendered_narrative})
 
             if current_block: blocks.append(current_block)
 
