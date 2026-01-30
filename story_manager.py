@@ -1,6 +1,7 @@
 import os
 import json
 import shutil
+import hashlib
 from datetime import datetime
 
 # CONFIG
@@ -10,6 +11,7 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 BACKGROUND_DIR = os.path.join(BASE_DIR, "backgrounds")
 META_DB_FILE = os.path.join(DATA_DIR, "stories_meta.json")
 
+# Ensure directories exist
 os.makedirs(STORY_DIR, exist_ok=True)
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(BACKGROUND_DIR, exist_ok=True)
@@ -29,32 +31,46 @@ def save_meta(data):
 
 def get_story_meta(rel_path):
     db = load_meta()
+    
+    # Create default if missing
     if rel_path not in db:
         db[rel_path] = {
             "display_title": os.path.basename(rel_path).replace(".txt", ""),
             "synopsis": "No synopsis written.",
             "tags": [],
-            "rating": 0,  # NEW: Default to 0 (Unrated)
+            "rating": 0,
+            "format_type": "star_rp",
             "background_file": None,
             "created_at": datetime.now().strftime("%Y-%m-%d")
         }
         save_meta(db)
     
-    # Backwards compatibility for existing entries
-    if "rating" not in db[rel_path]:
-        db[rel_path]["rating"] = 0
+    # Backwards compatibility checks
+    entry = db[rel_path]
+    dirty = False
+    
+    if "rating" not in entry:
+        entry["rating"] = 0
+        dirty = True
+        
+    if "format_type" not in entry:
+        entry["format_type"] = "star_rp"
+        dirty = True
+        
+    if dirty:
         save_meta(db)
         
-    return db[rel_path]
+    return entry
 
-def update_story_meta(rel_path, title, synopsis, tags, rating=0, background_file=None):
+def update_story_meta(rel_path, title, synopsis, tags, rating=0, format_type="star_rp", background_file=None):
     db = load_meta()
     if rel_path not in db: db[rel_path] = {}
     
     db[rel_path]["display_title"] = title
     db[rel_path]["synopsis"] = synopsis
     db[rel_path]["tags"] = tags
-    db[rel_path]["rating"] = int(rating) # NEW: Save rating
+    db[rel_path]["rating"] = int(rating)
+    db[rel_path]["format_type"] = format_type
     
     if background_file: 
         db[rel_path]["background_file"] = background_file
@@ -63,7 +79,6 @@ def update_story_meta(rel_path, title, synopsis, tags, rating=0, background_file
 
 def save_story_background(rel_path, file_object, original_filename):
     ext = os.path.splitext(original_filename)[1]
-    import hashlib
     safe_name = hashlib.md5(rel_path.encode()).hexdigest() + ext
     file_path = os.path.join(BACKGROUND_DIR, safe_name)
     
@@ -72,7 +87,7 @@ def save_story_background(rel_path, file_object, original_filename):
         
     db = load_meta()
     if rel_path not in db: get_story_meta(rel_path)
-    db = load_meta()
+    db = load_meta() # Reload to be safe
     db[rel_path]["background_file"] = safe_name
     save_meta(db)
     return safe_name
@@ -84,6 +99,7 @@ def search_stories(query):
     results = []
     query = query.lower()
     all_files = get_all_stories_flat()
+    
     for rel_path in all_files:
         full_path = os.path.join(STORY_DIR, rel_path)
         matches = []
@@ -92,16 +108,21 @@ def search_stories(query):
                 for i, line in enumerate(f):
                     if query in line.lower():
                         clean_line = line.strip()
+                        # Truncate extremely long lines for display
                         if len(clean_line) > 150:
                             idx = clean_line.lower().find(query)
                             start = max(0, idx - 50)
                             end = min(len(clean_line), idx + 100)
                             clean_line = "..." + clean_line[start:end] + "..."
                         matches.append(clean_line)
-                        if len(matches) >= 3: break
+                        if len(matches) >= 3: break # Limit matches per file
             if matches:
                 meta = get_story_meta(rel_path)
-                results.append({"path": rel_path, "title": meta.get("display_title", rel_path), "matches": matches})
+                results.append({
+                    "path": rel_path, 
+                    "title": meta.get("display_title", rel_path), 
+                    "matches": matches
+                })
         except: continue
     return results
 
@@ -122,6 +143,7 @@ def list_stories_by_campaign():
     structure = {"Unsorted": []}
     for f in os.listdir(STORY_DIR):
         if f.endswith(".txt"): structure["Unsorted"].append(f)
+    
     campaigns = get_campaigns()
     for camp in campaigns:
         if camp == "Unsorted": continue
@@ -133,8 +155,10 @@ def list_stories_by_campaign():
 
 def get_all_stories_flat():
     files = []
+    # Root
     for f in os.listdir(STORY_DIR):
         if f.endswith(".txt"): files.append(f)
+    # Campaigns
     for d in os.listdir(STORY_DIR):
         d_path = os.path.join(STORY_DIR, d)
         if os.path.isdir(d_path):
@@ -159,6 +183,7 @@ def move_story_to_campaign(current_rel_path, target_campaign):
     else:
         dest_rel = os.path.join(target_campaign, filename)
         dest_path = os.path.join(STORY_DIR, target_campaign, filename)
+        
     if src_path != dest_path:
         shutil.move(src_path, dest_path)
         db = load_meta()
@@ -167,6 +192,9 @@ def move_story_to_campaign(current_rel_path, target_campaign):
             save_meta(db)
     return dest_rel
 
+# ---------------------------------------------------------
+# IMPORT SAVING
+# ---------------------------------------------------------
 def sanitize_filename(name):
     safe = "".join(c for c in name if c.isalnum() or c in " -_").strip()
     safe = safe.replace(" ", "_")
