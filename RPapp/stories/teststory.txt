@@ -1,5 +1,0 @@
-Jakob: Hey, is this thing working?
-((testing the OOC system))
-*looks at the server logs with concern*
-Server: System normal.
-This is just a block of narrative text describing the scene. The room was dark, lit only by the blinking LEDs of the server rack.
