@@ -14,6 +14,9 @@ os.makedirs(STORY_DIR, exist_ok=True)
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(BACKGROUND_DIR, exist_ok=True)
 
+# ---------------------------------------------------------
+# METADATA DB
+# ---------------------------------------------------------
 def load_meta():
     if not os.path.exists(META_DB_FILE): return {}
     try:
@@ -21,7 +24,8 @@ def load_meta():
     except: return {}
 
 def save_meta(data):
-    with open(META_DB_FILE, 'w', encoding='utf-8') as f: json.dump(data, f, indent=4)
+    with open(META_DB_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=4)
 
 def get_story_meta(rel_path):
     db = load_meta()
@@ -30,19 +34,31 @@ def get_story_meta(rel_path):
             "display_title": os.path.basename(rel_path).replace(".txt", ""),
             "synopsis": "No synopsis written.",
             "tags": [],
+            "rating": 0,  # NEW: Default to 0 (Unrated)
             "background_file": None,
             "created_at": datetime.now().strftime("%Y-%m-%d")
         }
         save_meta(db)
+    
+    # Backwards compatibility for existing entries
+    if "rating" not in db[rel_path]:
+        db[rel_path]["rating"] = 0
+        save_meta(db)
+        
     return db[rel_path]
 
-def update_story_meta(rel_path, title, synopsis, tags, background_file=None):
+def update_story_meta(rel_path, title, synopsis, tags, rating=0, background_file=None):
     db = load_meta()
     if rel_path not in db: db[rel_path] = {}
+    
     db[rel_path]["display_title"] = title
     db[rel_path]["synopsis"] = synopsis
     db[rel_path]["tags"] = tags
-    if background_file: db[rel_path]["background_file"] = background_file
+    db[rel_path]["rating"] = int(rating) # NEW: Save rating
+    
+    if background_file: 
+        db[rel_path]["background_file"] = background_file
+        
     save_meta(db)
 
 def save_story_background(rel_path, file_object, original_filename):
@@ -50,7 +66,10 @@ def save_story_background(rel_path, file_object, original_filename):
     import hashlib
     safe_name = hashlib.md5(rel_path.encode()).hexdigest() + ext
     file_path = os.path.join(BACKGROUND_DIR, safe_name)
-    with open(file_path, "wb+") as dest: shutil.copyfileobj(file_object, dest)
+    
+    with open(file_path, "wb+") as dest:
+        shutil.copyfileobj(file_object, dest)
+        
     db = load_meta()
     if rel_path not in db: get_story_meta(rel_path)
     db = load_meta()
@@ -58,6 +77,9 @@ def save_story_background(rel_path, file_object, original_filename):
     save_meta(db)
     return safe_name
 
+# ---------------------------------------------------------
+# ORACLE: SEARCH ENGINE
+# ---------------------------------------------------------
 def search_stories(query):
     results = []
     query = query.lower()
@@ -83,6 +105,9 @@ def search_stories(query):
         except: continue
     return results
 
+# ---------------------------------------------------------
+# FILE OPERATIONS
+# ---------------------------------------------------------
 def get_campaigns():
     items = os.listdir(STORY_DIR)
     campaigns = [d for d in items if os.path.isdir(os.path.join(STORY_DIR, d))]
