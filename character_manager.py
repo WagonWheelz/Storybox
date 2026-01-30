@@ -8,6 +8,7 @@ import io
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
 
+# CONFIG
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 AVATAR_DIR = os.path.join(BASE_DIR, "avatars")
@@ -19,17 +20,38 @@ os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(AVATAR_DIR, exist_ok=True)
 os.makedirs(GALLERY_DIR, exist_ok=True)
 
+# ---------------------------------------------------------
+# DB OPS
+# ---------------------------------------------------------
 def sanitize_data(data):
     dirty = False
     cleaned_data = {}
     for key, val in data.items():
-        if not isinstance(val, dict): val = {"name": key, "description": "", "attributes": {}}
-        if "name" not in val or not val["name"]: val["name"] = key
-        if "attributes" not in val: val["attributes"] = {}
-        if "gallery" not in val: val["gallery"] = []
-        if "bubble_color" not in val: val["bubble_color"] = "#1e293b"
+        if not isinstance(val, dict): 
+            val = {"name": key, "description": "", "attributes": {}}
+            dirty = True
+        
+        if "name" not in val or not val["name"]: 
+            val["name"] = key
+            dirty = True
+            
+        if "attributes" not in val: 
+            val["attributes"] = {}
+            dirty = True
+            
+        if "gallery" not in val: 
+            val["gallery"] = []
+            dirty = True
+            
+        if "bubble_color" not in val: 
+            val["bubble_color"] = "#1e293b"
+            dirty = True
+            
         cleaned_data[key] = val
-    if dirty: save_json(CHAR_DB_FILE, cleaned_data)
+        
+    if dirty: 
+        save_json(CHAR_DB_FILE, cleaned_data)
+        
     return cleaned_data
 
 def load_json(filepath):
@@ -44,13 +66,17 @@ def load_json(filepath):
 def save_json(filepath, data):
     with open(filepath, 'w', encoding='utf-8') as f: json.dump(data, f, indent=4)
 
+# ---------------------------------------------------------
+# CHARACTER LOGIC
+# ---------------------------------------------------------
 def create_character(name):
     char_id = str(uuid.uuid4())
     db = load_json(CHAR_DB_FILE)
     db[char_id] = {
         "name": name, "description": "",
         "attributes": {"Age": "Unknown", "Gender": "Unknown", "Race": "Unknown", "Orientation": "Unknown"},
-        "avatar_file": None, "gallery": [], "bubble_color": "#1e293b"
+        "avatar_file": None, "gallery": [],
+        "bubble_color": "#1e293b"
     }
     save_json(CHAR_DB_FILE, db)
     return char_id
@@ -78,6 +104,9 @@ def delete_character(char_id):
         del db[char_id]
         save_json(CHAR_DB_FILE, db)
 
+# ---------------------------------------------------------
+# IMAGES
+# ---------------------------------------------------------
 def get_avatar_color(name):
     if not name: return "#333"
     hash_object = hashlib.md5(name.encode())
@@ -102,10 +131,14 @@ def add_gallery_image(char_id, file_object, original_filename):
         db[char_id]["gallery"].append(safe_filename)
         save_json(CHAR_DB_FILE, db)
 
+# ---------------------------------------------------------
+# EXPORT / IMPORT
+# ---------------------------------------------------------
 def export_character_card(char_id):
     try:
         char_data = get_character(char_id)
         if not char_data: return None
+
         img = None
         if char_data.get("avatar_file"):
             path = os.path.join(AVATAR_DIR, char_data["avatar_file"])
@@ -113,23 +146,37 @@ def export_character_card(char_id):
                 try: img = Image.open(path).convert("RGBA")
                 except: img = None
         if not img: img = Image.new('RGB', (400, 600), color=get_avatar_color(char_data.get('name')))
+
         name = char_data.get('name', 'Unknown')
         desc = char_data.get('description') or ""
         attrs = char_data.get('attributes') or {}
         bubble_color = char_data.get('bubble_color', '#1e293b')
+
         attr_text = "\n".join([f"{k}: {v}" for k, v in attrs.items()])
         full_desc = f"{desc}\n\n[Attributes]\n{attr_text}"
+
         card_data = {
-            "spec": "chara_card_v2", "spec_version": "2.0",
+            "spec": "chara_card_v2",
+            "spec_version": "2.0",
             "data": {
-                "name": name, "description": full_desc, "creator_notes": "Exported from StoryStash",
-                "extensions": {"storystash": {"raw_attributes": attrs, "raw_description": desc, "bubble_color": bubble_color}}
+                "name": name,
+                "description": full_desc,
+                "creator_notes": "Exported from StoryStash",
+                "extensions": {
+                    "storystash": {
+                        "raw_attributes": attrs,
+                        "raw_description": desc,
+                        "bubble_color": bubble_color
+                    }
+                }
             }
         }
+
         json_str = json.dumps(card_data)
         base64_str = base64.b64encode(json_str.encode('utf-8')).decode('utf-8')
         metadata = PngInfo()
         metadata.add_text("chara", base64_str)
+        
         output_buffer = io.BytesIO()
         img.save(output_buffer, format="PNG", pnginfo=metadata)
         output_buffer.seek(0)
@@ -144,11 +191,14 @@ def import_character_card(file_bytes):
         img.load() 
         raw_data = img.info.get("chara")
         if not raw_data: return None
+
         decoded_json = base64.b64decode(raw_data).decode('utf-8')
         card_json = json.loads(decoded_json)
         data_block = card_json.get("data", card_json)
+        
         new_id = str(uuid.uuid4())
         name = data_block.get("name", "Imported Character")
+        
         extensions = data_block.get("extensions", {})
         if "storystash" in extensions:
             desc = extensions["storystash"].get("raw_description", "")
@@ -158,17 +208,23 @@ def import_character_card(file_bytes):
             desc = data_block.get("description", "")
             attrs = {"Age": "Unknown"}
             bubble_color = "#1e293b"
+
         avatar_filename = f"{new_id}_avatar.png"
         img.save(os.path.join(AVATAR_DIR, avatar_filename), format="PNG")
+
         db = load_json(CHAR_DB_FILE)
         db[new_id] = {
             "name": name, "description": desc, "attributes": attrs,
-            "avatar_file": avatar_filename, "gallery": [], "bubble_color": bubble_color
+            "avatar_file": avatar_filename, "gallery": [],
+            "bubble_color": bubble_color
         }
         save_json(CHAR_DB_FILE, db)
         return new_id
     except: return None
 
+# ---------------------------------------------------------
+# MAPPING
+# ---------------------------------------------------------
 def get_story_map(filename):
     filename = filename.replace("\\", "/")
     full_map = load_json(MAP_DB_FILE)
@@ -198,7 +254,8 @@ def get_cast_for_story(filename, local_stats):
         char_obj = {
             "raw_name": raw_name, "msg_count": local_stats[raw_name], "id": None,
             "display_name": raw_name, "description": "", "attributes": {}, "avatar_url": None,
-            "color": get_avatar_color(raw_name), "bubble_color": "#1e293b"
+            "color": get_avatar_color(raw_name),
+            "bubble_color": "#1e293b" # default
         }
         if mapped_id and mapped_id in char_db:
             db_char = char_db[mapped_id]
