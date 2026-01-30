@@ -2,8 +2,11 @@ services:
   storystash:
     container_name: StoryBox
     build: .
-    ports:
-      - "8000:8000"
+    network_mode: host 
+    
+    # NOTE: When using network_mode: host, we do NOT use the 'ports' section.
+    # The app will automatically be available on port 8000.
+    
     volumes:
       - ./data:/app/data
       - ./stories:/app/stories
