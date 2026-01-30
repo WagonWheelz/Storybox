@@ -1,16 +1,17 @@
 # 📦 StoryBox
 
-**StoryBox** is a personal archive and content management system for **text-based roleplay logs and original characters**.
+**StoryBox** is a personal archive and CMS (Content Management System) for text based roleplay logs, Characters and prompts. Inspired by Stashapp's perfect storage and display abilities for umm... "media", StoryBoxaims to create a similar solution for all us writers and readers out there. 
 
-If you have ever looked at a folder full of Google Docs named things like  
-`RP_FINAL_v3_ACTUALLY_FINAL.docx`  
-and thought “there has to be a better way”, StoryBox is that better way.
+---
 
-Inspired by media library apps like **Stash**, StoryBox treats roleplay logs like media. Organized, searchable, character-focused, and much nicer to revisit later when nostalgia or curiosity hits.
+## 🖼️ Screenshots
 
-It supports all kinds of text roleplay.  
-It just happens to be very good at one particular kind.  
-You know the one.
+![Dashboard screenshot](Screenshots/screencapture-story-harrison-home-2026-01-30-17_44_58.png "Dashboard")
+![Stories screenshot](Screenshots/screencapture-story-harrison-home-stories-2026-01-30-17_46_32.png "Stories")
+![Individual Story screenshot](Screenshots/screencapture-story-harrison-home-read-The-first-day-txt-2026-01-30-17_45_12.png "Story")
+![Character Screenshot](Screenshots/screencapture-story-harrison-home-character-0eec0e9f-eead-4b6e-b0da-d202ae84e979-2026-01-30-17_43_27.png "Character")
+![Character edit section](Screenshots/screencapture-story-harrison-home-character-0eec0e9f-eead-4b6e-b0da-d202ae84e979-2026-01-30-17_46_49.png "Character Edit page")
+![Cast Management ](Screenshots/Screenshot-2026-01-30-174602.png "Manage cast")
 
 ---
 
@@ -18,7 +19,7 @@ You know the one.
 
 Text roleplay is creative work. Stories, characters, relationships, slow burns, fast burns, accidental burns, and that one scene you swear you only reread for the plot.
 
-Most tools treat RP logs like disposable text files. StoryBox does not.
+There aren't really any existing tools that acomplish what StoryBox was made to do, most archival tools and writing ones just end up saving a plain and boring text document.
 
 StoryBox was built to:
 - 📚 Preserve RP logs long-term
@@ -35,10 +36,12 @@ StoryBox was built to:
   - `.txt` files
   - Copy and paste
 - Automatically formats RP logs for readability
+  - Select the RP format type from Basic / star RP (*Action*), Mardown (**ACTION**) and Novel.
 - Differentiates:
   - Character dialogue
   - Character actions
-  - Narration and description
+  - Narration
+  - OOC discussion
 
 - Assign background images per story
 - Customize character speech bubble colors
@@ -54,7 +57,9 @@ Each story displays compact character overview cards with:
 - Tags
 - General information at a glance
 
-Full character details live in the **Characters** tab for when you want the entire lore dump.
+Once assigned, StoryBox replaces usernames with **character cards**, making logs easier to read and much more immersive. No more mentally translating “User123” into “emotionally unavailable vampire”. Simply click "manage cast" and replace the username with the Character of your choice from your storage or create a whole new one on the fly.
+
+Full character details live in the **Characters** tab with increased features and information.
 
 ---
 
@@ -64,14 +69,12 @@ Create fully featured character profiles and assign them to stories.
 Each character includes:
 - Profile image
 - Bio and description
-- Attributes
+- Unlimited Attributes
 - Image gallery
 - Tags
 - Word count statistics
 - A list of RPs they appear in
 - Associated prompts
-
-Once assigned, StoryBox replaces usernames with **character cards**, making logs easier to read and much more immersive. No more mentally translating “User123” into “emotionally unavailable vampire”. Simply click "manage cast" and replace the username with the Character of your choice from your storage or create a whole new one on the fly.
 
 ---
 
@@ -134,9 +137,9 @@ CharacterName: *He smirks slightly.* "I was wondering when you would ask".
 ### 📖 Narrative Text
 Lines that do not belong to a speaker are treated as narration.
 
-``
+```
 The room is quiet except for the hum of the lights overhead.
-``
+```
 
 These are displayed as story narration rather than dialogue.
 
@@ -145,9 +148,9 @@ These are displayed as story narration rather than dialogue.
 ### 💬 Out-of-Character (OOC)
 Out-of-character messages are wrapped in double parentheses.
 
-``
+```
 ((brb grabbing coffee))
-``
+```
 
 These are separated from the main story flow so they do not interrupt immersion when rereading.
 
@@ -161,23 +164,6 @@ These are separated from the main story flow so they do not interrupt immersion 
   - Story date based on file modification time
 
 If a line does not match any known format, StoryBox does its best to place it where it makes the most sense. It is forgiving, not judgmental.
-
----
-
-## 🖼️ Screenshots
-
-```
-## 🖼️ Screenshots
-
-### Story View
-![Story View](./screenshots/story-view.png)
-
-### Character Profile
-![Character Profile](./screenshots/character.png)
-
-### Prompt Manager
-![Prompt Manager](./screenshots/prompts.png)
-```
 
 ---
 
@@ -217,6 +203,6 @@ StoryBox is a prtsonally designed project, so you can do what you want with it. 
 ---
 
 ## 🤖 AI disclosure
-This app was made with 75% AI assisted or Generated code. My reasoning for this is that I already have a free subscription to Gemini Pro so I should use it and it was only ever intended to be an internal / peronsal app But i've had some interest in sharing it. I do not guarantee that this will work or is flawless, I offer no warranty or major support other than me refining the code with your issues and shoving it back into Gemini if i can't resolve it. This is licensed under a GPv2 so anyone can make it human made and better.
+This app was made with **75%** AI assisted or Generated code. My reasoning for this is that I already have a free subscription to Gemini Pro so I should use it and it was only ever intended to be an internal / peronsal app But i've had some interest in sharing it. I do not guarantee that this will work or is flawless, I offer no warranty or major support other than me refining the code with your issues and shoving it back into Gemini if i can't resolve it. This is licensed under a GPv2 so anyone can make it human made and better.
 
-NO ARTWORK WAS AI GENERATED
+**NO ARTWORK WAS AI GENERATED**
