@@ -32,7 +32,7 @@ HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html class="dark">
 <head>
-    <title>StoryStash RP</title>
+    <title>StoryBox</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
@@ -62,7 +62,7 @@ HTML_TEMPLATE = """
 
     <header class="bg-slate-900 border-b border-slate-800 p-4 shadow-lg flex justify-between items-center z-10 shrink-0 relative">
         <div class="flex items-center gap-6">
-            <h1 class="text-xl font-bold text-indigo-400">StoryStash <span class="text-xs text-gray-500">v4.5</span></h1>
+            <h1 class="text-xl font-bold text-indigo-400">StoryBox <span class="text-xs text-gray-500">v4.5</span></h1>
             <nav class="flex gap-4 text-sm font-medium">
                 <a href="/" class="{{ 'text-white font-bold' if mode == 'dashboard' else 'text-gray-400 hover:text-white' }}">Dashboard</a>
                 <a href="/stories" class="{{ 'text-white font-bold' if mode == 'stories_list' else 'text-gray-400 hover:text-white' }}">Stories</a>
