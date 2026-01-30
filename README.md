@@ -46,6 +46,18 @@ StoryBox was built to:
 
 ---
 
+### 🪪 Character Overview Cards
+Each story displays compact character overview cards with:
+- Profile picture
+- Character name
+- Word count
+- Tags
+- General information at a glance
+
+Full character details live in the **Characters** tab for when you want the entire lore dump.
+
+---
+
 ### 🎭 Character System
 Create fully featured character profiles and assign them to stories.
 
@@ -59,19 +71,7 @@ Each character includes:
 - A list of RPs they appear in
 - Associated prompts
 
-Once assigned, StoryBox replaces usernames with **character cards**, making logs easier to read and much more immersive. No more mentally translating “User123” into “emotionally unavailable vampire”.
-
----
-
-### 🪪 Character Overview Cards
-Each story displays compact character overview cards with:
-- Profile picture
-- Character name
-- Word count
-- Tags
-- General information at a glance
-
-Full character details live in the **Characters** tab for when you want the entire lore dump.
+Once assigned, StoryBox replaces usernames with **character cards**, making logs easier to read and much more immersive. No more mentally translating “User123” into “emotionally unavailable vampire”. Simply click "manage cast" and replace the username with the Character of your choice from your storage or create a whole new one on the fly.
 
 ---
 
@@ -88,14 +88,12 @@ Perfect for transferring characters between tools without recreating them from s
 ---
 
 ### 🧠 Prompt Management
-The **Prompts** section acts like a small CMS built specifically for roleplayers.
+The **Prompts** section acts as a simple notepad and storage for your character or story prompts, intros, etc.
 
 You can:
 - Store reusable roleplay prompts
 - Edit and refine them over time
 - Assign prompts to characters and stories
-
-Ideal for scenario starters, behavioral rules, world notes, or “this character absolutely would” lists.
 
 ---
 
@@ -183,7 +181,7 @@ If a line does not match any known format, StoryBox does its best to place it wh
 
 ---
 
-## 🛠️ Project Structure
+<!-- ## 🛠️ Project Structure
 
 ```
 StoryBox/
@@ -199,7 +197,8 @@ StoryBox/
 └── LICENSE
 ```
 
----
+--- 
+-->
 
 ## ▶️ Running StoryBox
 
@@ -211,22 +210,9 @@ Docker support is included for those who like their roleplay tools responsibly c
 
 ---
 
-## 🧭 Roadmap
-
-Possible future additions:
-- Advanced search and filtering
-- Writing analytics and statistics
-- Timeline and story arc views
-- Expanded UI features
-- Even more ways to admire your own writing
-
----
-
 ## 🤝 Contributing
 
-StoryBox is a passion project built by a roleplayer, for roleplayers.
-
-Bug reports, feature ideas, and pull requests are welcome. Judgment is not.
+StoryBox is a prtsonally designed project, so you can do what you want with it. It's fully oppen source and honestly I just want to see what other fun things peopel will do.
 
 ---
 
