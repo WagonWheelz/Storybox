@@ -1,0 +1,13 @@
+services:
+  storystash:
+    container_name: StoryBox
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./stories:/app/stories
+      - ./avatars:/app/avatars
+      - ./gallery:/app/gallery
+      - ./backgrounds:/app/backgrounds
+    restart: unless-stopped
