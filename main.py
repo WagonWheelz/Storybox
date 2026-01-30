@@ -49,13 +49,20 @@ HTML_TEMPLATE = """
         .tag-purple { background: #581c87; color: #d8b4fe; border: 1px solid #7e22ce; }
         .tag-gray { background: #1f2937; color: #9ca3af; border: 1px solid #374151; }
         .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        
+        /* Markdown Specific Styles */
+        .markdown-content p { margin-bottom: 0.5em; }
+        .markdown-content strong { color: #fff; font-weight: bold; }
+        .markdown-content em { color: #a5b4fc; font-style: italic; }
+        .markdown-content ul { list-style-type: disc; padding-left: 1.5em; }
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 { font-weight: bold; color: #e0e7ff; margin-top: 0.5em; }
     </style>
 </head>
 <body class="bg-slate-950 text-gray-200 font-sans h-screen flex flex-col">
 
     <header class="bg-slate-900 border-b border-slate-800 p-4 shadow-lg flex justify-between items-center z-10 shrink-0 relative">
         <div class="flex items-center gap-6">
-            <h1 class="text-xl font-bold text-indigo-400">StoryStash <span class="text-xs text-gray-500">v4.2</span></h1>
+            <h1 class="text-xl font-bold text-indigo-400">StoryStash <span class="text-xs text-gray-500">v4.5</span></h1>
             <nav class="flex gap-4 text-sm font-medium">
                 <a href="/" class="{{ 'text-white font-bold' if mode == 'dashboard' else 'text-gray-400 hover:text-white' }}">Dashboard</a>
                 <a href="/stories" class="{{ 'text-white font-bold' if mode == 'stories_list' else 'text-gray-400 hover:text-white' }}">Stories</a>
@@ -156,11 +163,17 @@ HTML_TEMPLATE = """
                                 {% for cid in prompt.linked_chars %}
                                     {% if all_chars.get(cid) %}
                                     <div class="w-6 h-6 rounded-full bg-slate-800 border border-slate-600 overflow-hidden shrink-0" title="{{ all_chars[cid].name }}">
-                                        {% if all_chars[cid].avatar_file %}<img src="/avatars/{{ all_chars[cid].avatar_file }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full flex items-center justify-center text-[8px]">{{ all_chars[cid].name[:1] }}</div>{% endif %}
+                                        {% if all_chars[cid].avatar_file %}
+                                        <img src="/avatars/{{ all_chars[cid].avatar_file }}" class="w-full h-full object-cover">
+                                        {% else %}
+                                        <div class="w-full h-full flex items-center justify-center text-[8px]">{{ all_chars[cid].name[:1] }}</div>
+                                        {% endif %}
                                     </div>
                                     {% endif %}
                                 {% endfor %}
-                            {% else %}<span class="text-[10px] text-gray-600 italic">None</span>{% endif %}
+                            {% else %}
+                                <span class="text-[10px] text-gray-600 italic">None</span>
+                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}
@@ -194,32 +207,6 @@ HTML_TEMPLATE = """
                 </form>
             </dialog>
 
-        {% elif mode == 'char_list' %}
-            <div class="flex-1 h-full overflow-y-auto z-10">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-white">Character Database</h2>
-                    <div class="flex gap-4 items-center">
-                        <form action="/import_character" method="post" enctype="multipart/form-data" class="flex gap-2">
-                            <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded text-sm border border-slate-700 font-medium"><i class="fas fa-file-import mr-1"></i> Import Card (PNG)<input type="file" name="file" accept=".png" class="hidden" onchange="this.form.submit()"></label>
-                        </form>
-                        <form action="/create_character_quick" method="post" class="flex gap-2 border-l border-slate-700 pl-4">
-                            <input type="text" name="name" placeholder="New Character Name" class="input-dark py-1 px-3 w-64" required>
-                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1 rounded text-sm font-bold">Create</button>
-                        </form>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                    {% for id, char in all_chars.items() %}
-                    <a href="/character/{{ id }}" class="block bg-slate-900 rounded-xl border border-slate-800 overflow-hidden hover:border-indigo-500 hover:shadow-lg transition group">
-                        <div class="aspect-square bg-slate-800 w-full relative">
-                            {% if char.get('avatar_file') %}<img src="/avatars/{{ char.avatar_file }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full flex items-center justify-center text-4xl font-bold text-white/20">{{ char.get('name', '?')[:1] }}</div>{% endif %}
-                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3 pt-8"><h3 class="font-bold text-white truncate">{{ char.get('name', 'Unknown') }}</h3></div>
-                        </div>
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
-
         {% elif mode == 'char_profile' %}
             <div class="flex-1 h-full overflow-hidden flex gap-8 z-10">
                 <aside class="w-80 shrink-0 h-full overflow-y-auto space-y-6">
@@ -242,8 +229,22 @@ HTML_TEMPLATE = """
                 </aside>
                 <div class="flex-1 h-full overflow-y-auto space-y-8 pr-4">
                     {% if assigned_prompts %}
-                    <section><h2 class="text-xl font-bold text-amber-400 mb-2 border-b border-slate-800 pb-2"><i class="fas fa-lightbulb mr-2"></i> Assigned Prompts</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4">{% for p in assigned_prompts %}<div class="bg-slate-900 border border-slate-800 p-4 rounded-lg hover:border-amber-500/50 transition"><h3 class="font-bold text-gray-200 mb-2">{{ p.title }}</h3><div class="text-xs text-gray-400 italic line-clamp-3 mb-2">{{ p.content }}</div><div class="flex flex-wrap gap-1">{% for tag in p.tags %}<span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-gray-500 border border-slate-700">{{ tag }}</span>{% endfor %}</div></div>{% endfor %}</div></section>
+                    <section>
+                        <h2 class="text-xl font-bold text-amber-400 mb-2 border-b border-slate-800 pb-2"><i class="fas fa-lightbulb mr-2"></i> Assigned Prompts</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for p in assigned_prompts %}
+                            <div class="bg-slate-900 border border-slate-800 p-4 rounded-lg hover:border-amber-500/50 transition">
+                                <h3 class="font-bold text-gray-200 mb-2">{{ p.title }}</h3>
+                                <div class="text-xs text-gray-400 italic line-clamp-3 mb-2">{{ p.content }}</div>
+                                <div class="flex flex-wrap gap-1">
+                                    {% for tag in p.tags %}<span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-gray-500 border border-slate-700">{{ tag }}</span>{% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </section>
                     {% endif %}
+
                     <section><h2 class="text-xl font-bold text-indigo-400 mb-2 border-b border-slate-800 pb-2">Biography</h2><div class="bg-slate-900/50 p-6 rounded-xl border border-slate-800 text-gray-300 leading-relaxed italic">{{ char.description or "No biography." }}</div></section>
                     <section><h2 class="text-xl font-bold text-indigo-400 mb-2 border-b border-slate-800 pb-2">Appears In</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{% for story_path in stories %}<a href="/read/{{ story_path }}" class="block bg-slate-900 p-4 rounded-lg border border-slate-800 hover:border-indigo-500 transition"><i class="fas fa-file-alt text-indigo-500 mr-2"></i> {{ story_path }}</a>{% endfor %}{% if not stories %}<p class="text-gray-500 text-sm">Not linked to any stories.</p>{% endif %}</div></section>
                     <section><div class="flex justify-between items-center mb-2 border-b border-slate-800 pb-2"><h2 class="text-xl font-bold text-indigo-400">Gallery</h2><form action="/upload_gallery" method="post" enctype="multipart/form-data"><input type="hidden" name="char_id" value="{{ char_id }}"><label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1 rounded border border-slate-700 text-gray-300"><i class="fas fa-upload mr-1"></i> Add Image<input type="file" name="image" class="hidden" onchange="this.form.submit()"></label></form></div><div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">{% for img in char.get('gallery', []) %}<div class="aspect-square rounded-lg overflow-hidden border border-slate-800 bg-black cursor-pointer hover:border-indigo-500 transition" onclick="window.open('/gallery/{{ img }}', '_blank')"><img src="/gallery/{{ img }}" class="w-full h-full object-cover"></div>{% endfor %}</div></section>
@@ -253,13 +254,25 @@ HTML_TEMPLATE = """
 
         {% elif mode == 'search' %}
             <div class="flex-1 max-w-4xl h-full overflow-y-auto z-10"><h2 class="text-2xl font-bold text-white mb-6">Search Results for "<span class="text-indigo-400">{{ query }}</span>"</h2><div class="space-y-4">{% for result in results %}<div class="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-indigo-500 transition"><a href="/read/{{ result.path }}" class="block"><h3 class="font-bold text-lg text-indigo-400 mb-1"><i class="fas fa-file-alt mr-2"></i> {{ result.title }}</h3><div class="text-xs text-gray-500 mb-3">{{ result.path }}</div><div class="space-y-2">{% for match in result.matches %}<div class="text-sm text-gray-300 font-mono bg-slate-950 p-2 rounded border-l-2 border-indigo-500/50">...{{ match }}...</div>{% endfor %}</div></a></div>{% endfor %}{% if not results %}<div class="text-center text-gray-500 mt-20"><i class="fas fa-ghost text-4xl mb-4 opacity-50"></i><p>No results found.</p></div>{% endif %}</div></div>
+        
         {% elif mode == 'stories_list' %}
-            <aside class="w-64 shrink-0 bg-slate-900/50 rounded-xl border border-slate-800 p-4 h-full overflow-y-auto z-10"><div class="flex justify-between items-center mb-4"><h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Campaigns</h2><button onclick="document.getElementById('campaignModal').showModal()" class="text-xs text-indigo-400 hover:text-indigo-300"><i class="fas fa-plus"></i></button></div><nav class="space-y-1"><a href="/stories" class="block px-3 py-2 rounded text-sm {{ 'bg-indigo-900/50 text-indigo-200' if not active_campaign else 'text-gray-400 hover:bg-slate-800 hover:text-white' }}"><i class="fas fa-layer-group w-5"></i> All Stories</a>{% for camp in campaigns %}{% if camp != "Unsorted" %}<a href="/stories?campaign={{ camp }}" class="block px-3 py-2 rounded text-sm {{ 'bg-indigo-900/50 text-indigo-200' if active_campaign == camp else 'text-gray-400 hover:bg-slate-800 hover:text-white' }}"><i class="fas fa-folder w-5 text-yellow-600"></i> {{ camp }}</a>{% endif %}{% endfor %}</nav><div class="mt-6 border-t border-slate-800 pt-4"><button onclick="document.getElementById('importStoryModal').showModal()" class="block w-full text-left px-3 py-2 rounded text-sm text-gray-400 hover:bg-slate-800 hover:text-white transition"><i class="fas fa-file-import w-5 text-green-500"></i> Import / Write</button></div></aside><div class="flex-1 h-full overflow-y-auto pr-2 z-10"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">{% for item in stories %}<div class="bg-slate-900 rounded-xl border border-slate-800 shadow-lg hover:border-indigo-500/50 transition flex flex-col h-[280px] group relative"><button onclick='openStoryMetaModal({{ item | tojson }})' class="absolute top-2 right-2 z-10 text-gray-500 hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition p-2"><i class="fas fa-cog"></i></button><a href="/read/{{ item.path }}" class="flex-1 flex flex-col p-5"><div class="mb-3"><h3 class="font-bold text-lg text-gray-100 leading-tight line-clamp-1" title="{{ item.meta.display_title }}">{{ item.meta.display_title }}</h3><div class="text-[10px] text-gray-500 mt-1 flex gap-2"><span><i class="far fa-clock"></i> {{ item.stats.date }}</span><span><i class="far fa-comment-alt"></i> {{ item.stats.msg_count }}</span></div></div><div class="text-yellow-500 text-xs mb-1">{% for i in range(item.meta.rating) %}<i class="fas fa-star"></i>{% endfor %}</div><div class="flex-1 text-xs text-gray-400 italic line-clamp-4 leading-relaxed overflow-hidden">{{ item.meta.synopsis }}</div>{% if item.stats.top_characters %}<div class="mt-3 flex -space-x-2 overflow-hidden py-1">{% for char in item.stats.top_characters %}<div class="inline-block h-6 w-6 rounded-full ring-2 ring-slate-900 bg-indigo-500 flex items-center justify-center text-[8px] font-bold text-white">{{ char[:1] }}</div>{% endfor %}</div>{% endif %}</a><div class="p-3 border-t border-slate-800 bg-slate-950/30 rounded-b-xl flex gap-2 overflow-x-auto">{% if item.meta.tags %}{% for tag in item.meta.tags %}<span class="tag tag-blue">{{ tag }}</span>{% endfor %}{% else %}<span class="tag tag-gray">No Tags</span>{% endif %}</div></div>{% endfor %}</div></div>
+            <aside class="w-64 shrink-0 bg-slate-900/50 rounded-xl border border-slate-800 p-4 h-full overflow-y-auto z-10">
+                <div class="flex justify-between items-center mb-4"><h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Campaigns</h2><button onclick="document.getElementById('campaignModal').showModal()" class="text-xs text-indigo-400 hover:text-indigo-300"><i class="fas fa-plus"></i></button></div>
+                <nav class="space-y-1"><a href="/stories" class="block px-3 py-2 rounded text-sm {{ 'bg-indigo-900/50 text-indigo-200' if not active_campaign else 'text-gray-400 hover:bg-slate-800 hover:text-white' }}"><i class="fas fa-layer-group w-5"></i> All Stories</a>{% for camp in campaigns %}{% if camp != "Unsorted" %}<a href="/stories?campaign={{ camp }}" class="block px-3 py-2 rounded text-sm {{ 'bg-indigo-900/50 text-indigo-200' if active_campaign == camp else 'text-gray-400 hover:bg-slate-800 hover:text-white' }}"><i class="fas fa-folder w-5 text-yellow-600"></i> {{ camp }}</a>{% endif %}{% endfor %}</nav>
+                <div class="mt-6 border-t border-slate-800 pt-4"><button onclick="document.getElementById('importStoryModal').showModal()" class="block w-full text-left px-3 py-2 rounded text-sm text-gray-400 hover:bg-slate-800 hover:text-white transition"><i class="fas fa-file-import w-5 text-green-500"></i> Import / Write</button></div>
+            </aside>
+            <div class="flex-1 h-full overflow-y-auto pr-2 z-10"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">{% for item in stories %}<div class="bg-slate-900 rounded-xl border border-slate-800 shadow-lg hover:border-indigo-500/50 transition flex flex-col h-[280px] group relative"><button onclick='openStoryMetaModal({{ item | tojson }})' class="absolute top-2 right-2 z-10 text-gray-500 hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition p-2"><i class="fas fa-cog"></i></button><a href="/read/{{ item.path }}" class="flex-1 flex flex-col p-5"><div class="mb-3"><h3 class="font-bold text-lg text-gray-100 leading-tight line-clamp-1" title="{{ item.meta.display_title }}">{{ item.meta.display_title }}</h3><div class="text-[10px] text-gray-500 mt-1 flex gap-2"><span><i class="far fa-clock"></i> {{ item.stats.date }}</span><span><i class="far fa-comment-alt"></i> {{ item.stats.msg_count }}</span></div></div><div class="text-yellow-500 text-xs mb-1">{% for i in range(item.meta.rating) %}<i class="fas fa-star"></i>{% endfor %}</div><div class="flex-1 text-xs text-gray-400 italic line-clamp-4 leading-relaxed overflow-hidden">{{ item.meta.synopsis }}</div>{% if item.stats.top_characters %}<div class="mt-3 flex -space-x-2 overflow-hidden py-1">{% for char in item.stats.top_characters %}<div class="inline-block h-6 w-6 rounded-full ring-2 ring-slate-900 bg-indigo-500 flex items-center justify-center text-[8px] font-bold text-white">{{ char[:1] }}</div>{% endfor %}</div>{% endif %}</a><div class="p-3 border-t border-slate-800 bg-slate-950/30 rounded-b-xl flex gap-2 overflow-x-auto">{% if item.meta.tags %}{% for tag in item.meta.tags %}<span class="tag tag-blue">{{ tag }}</span>{% endfor %}{% else %}<span class="tag tag-gray">No Tags</span>{% endif %}</div></div>{% endfor %}</div></div>
             {{ modals | safe }}
+
+        {% elif mode == 'char_list' %}
+            <div class="flex-1 h-full overflow-y-auto z-10">
+                <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-white">Character Database</h2><div class="flex gap-4 items-center"><form action="/import_character" method="post" enctype="multipart/form-data" class="flex gap-2"><label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded text-sm border border-slate-700 font-medium"><i class="fas fa-file-import mr-1"></i> Import Card (PNG)<input type="file" name="file" accept=".png" class="hidden" onchange="this.form.submit()"></label></form><form action="/create_character_quick" method="post" class="flex gap-2 border-l border-slate-700 pl-4"><input type="text" name="name" placeholder="New Character Name" class="input-dark py-1 px-3 w-64" required><button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1 rounded text-sm font-bold">Create</button></form></div></div>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">{% for id, char in all_chars.items() %}<a href="/character/{{ id }}" class="block bg-slate-900 rounded-xl border border-slate-800 overflow-hidden hover:border-indigo-500 hover:shadow-lg transition group"><div class="aspect-square bg-slate-800 w-full relative">{% if char.get('avatar_file') %}<img src="/avatars/{{ char.avatar_file }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full flex items-center justify-center text-4xl font-bold text-white/20">{{ char.get('name', '?')[:1] }}</div>{% endif %}<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3 pt-8"><h3 class="font-bold text-white truncate">{{ char.get('name', 'Unknown') }}</h3></div></div></a>{% endfor %}</div>
+            </div>
 
         {% elif mode == 'read' %}
             <aside class="w-80 hidden md:block shrink-0 sidebar-container space-y-6 z-10">{% for char in characters %}<div class="glass-panel rounded-xl overflow-hidden shadow-lg flex flex-col relative group">{% if char.id %}<a href="/character/{{ char.id }}" class="absolute top-2 left-2 z-10 bg-black/50 hover:bg-indigo-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition"><i class="fas fa-external-link-alt text-xs"></i></a><button onclick='openEditModal({{ char | tojson }})' class="absolute top-2 right-2 z-10 bg-black/50 hover:bg-indigo-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition"><i class="fas fa-pencil-alt text-xs"></i></button>{% else %}<div class="absolute top-2 right-2 z-10 bg-black/50 text-xs text-gray-400 px-2 py-1 rounded pointer-events-none">Unlinked</div>{% endif %}<div class="w-full flex justify-center pt-4 pb-2 bg-slate-800/50">{% if char.avatar_url %}<img src="{{ char.avatar_url }}" class="w-[200px] h-[200px] object-cover rounded shadow-md border border-gray-700">{% else %}<div class="w-[200px] h-[200px] flex items-center justify-center font-bold text-white shadow-md rounded border border-gray-700 text-6xl select-none" style="background-color: {{ char.color }};">{{ char.display_name[:1] }}</div>{% endif %}</div><div class="p-4 border-t border-gray-800 bg-gray-900/90"><h3 class="font-bold text-lg text-gray-100 truncate text-center mb-3">{{ char.display_name }}</h3><div class="grid grid-cols-2 gap-2 text-xs text-gray-400 mb-3 bg-slate-950/50 p-2 rounded"><div><span class="block text-[9px] uppercase font-bold text-gray-600">Age</span>{{ char.attributes.get('Age', '-') }}</div><div><span class="block text-[9px] uppercase font-bold text-gray-600">Gender</span>{{ char.attributes.get('Gender', '-') }}</div><div><span class="block text-[9px] uppercase font-bold text-gray-600">Race</span>{{ char.attributes.get('Race', '-') }}</div><div><span class="block text-[9px] uppercase font-bold text-gray-600">Orient.</span>{{ char.attributes.get('Orientation', '-') }}</div></div></div></div>{% endfor %}</aside>
-            <div class="flex-1 max-w-4xl h-full overflow-y-auto pr-2 z-10"><div class="glass-panel rounded-xl shadow-2xl p-8 min-h-full"><div class="space-y-6">{% for block in blocks %}{% if block.type == 'ooc' %}<div class="flex justify-center my-4 opacity-75"><div class="bg-gray-800 border border-gray-600 text-gray-400 text-xs px-4 py-1 rounded-full uppercase tracking-wider">(( {{ block.text | safe }} ))</div></div>{% elif block.type == 'dialogue' %}<div class="flex flex-col space-y-1"><span class="text-xs font-bold text-indigo-400 ml-1 drop-shadow-md">{{ block.speaker }}</span>{% set speaker_char = char_map.get(block.speaker) %}{% set bubble_color = speaker_char.bubble_color if speaker_char else '#1f2937' %}<div class="text-gray-100 p-3 rounded-2xl rounded-tl-none inline-block max-w-[85%] self-start shadow-sm leading-relaxed border" style="background-color: {{ bubble_color }}DD; border-color: {{ bubble_color }};">{% for line in block.lines %}<div class="{{ 'my-1' if line.is_action_line else 'min-h-[1.2em]' }}">{{ line.content | safe }}</div>{% endfor %}</div></div>{% else %}<div class="text-gray-300 leading-relaxed bg-black/40 p-4 rounded-lg border-l-2 border-indigo-500/50 backdrop-blur-sm">{{ block.text | safe }}</div>{% endif %}{% endfor %}</div><div class="mt-20 pt-10 border-t border-gray-800 text-center text-gray-600 text-sm">End of File</div></div></div><div class="w-10 hidden xl:block shrink-0"></div>
+            <div class="flex-1 max-w-4xl h-full overflow-y-auto pr-2 z-10"><div class="glass-panel rounded-xl shadow-2xl p-8 min-h-full"><div class="space-y-6">{% for block in blocks %}{% if block.type == 'ooc' %}<div class="flex justify-center my-4 opacity-75"><div class="bg-gray-800 border border-gray-600 text-gray-400 text-xs px-4 py-1 rounded-full uppercase tracking-wider">(( {{ block.text | safe }} ))</div></div>{% elif block.type == 'dialogue' %}<div class="flex flex-col space-y-1"><span class="text-xs font-bold text-indigo-400 ml-1 drop-shadow-md">{{ block.speaker }}</span>{% set speaker_char = char_map.get(block.speaker) %}{% set bubble_color = speaker_char.bubble_color if speaker_char else '#1f2937' %}<div class="text-gray-100 p-3 rounded-2xl rounded-tl-none inline-block max-w-[85%] self-start shadow-sm leading-relaxed border" style="background-color: {{ bubble_color }}DD; border-color: {{ bubble_color }};"><div class="markdown-content">{% for line in block.lines %}{{ line.content | safe }}{% endfor %}</div></div></div>{% else %}<div class="text-gray-300 leading-relaxed bg-black/40 p-4 rounded-lg border-l-2 border-indigo-500/50 backdrop-blur-sm"><div class="markdown-content">{{ block.text | safe }}</div></div>{% endif %}{% endfor %}</div><div class="mt-20 pt-10 border-t border-gray-800 text-center text-gray-600 text-sm">End of File</div></div></div><div class="w-10 hidden xl:block shrink-0"></div>
             <dialog id="castModal" class="rounded-xl shadow-2xl bg-slate-900 border border-slate-700 text-gray-200 w-[600px] backdrop:bg-black/80"><div class="p-6 border-b border-slate-800 flex justify-between items-center"><h2 class="text-lg font-bold text-indigo-400">Manage Cast</h2><button onclick="document.getElementById('castModal').close()" class="text-gray-500 hover:text-white"><i class="fas fa-times"></i></button></div><div class="p-6 max-h-[70vh] overflow-y-auto"><table class="w-full text-left text-sm"><thead class="text-xs text-gray-500 uppercase border-b border-slate-700"><tr><th class="py-2">Name in Story</th><th class="py-2">Database Character</th></tr></thead><tbody class="divide-y divide-slate-800">{% for char in characters %}<tr><td class="py-3 font-bold text-gray-300">{{ char.raw_name }}</td><td class="py-3"><form action="/link_character" method="POST" class="flex gap-2"><input type="hidden" name="filename" value="{{ filename }}"><input type="hidden" name="raw_name" value="{{ char.raw_name }}"><select name="char_id" class="input-dark text-xs py-1"><option value="">-- Unlinked --</option><option value="NEW">➕ Create New</option>{% for db_id, db_data in all_db_chars.items() %}<option value="{{ db_id }}" {% if char.id == db_id %}selected{% endif %}>{{ db_data.get('name', 'Unknown') }}</option>{% endfor %}</select><button type="submit" class="bg-indigo-900 hover:bg-indigo-700 text-indigo-200 px-2 rounded text-xs">Save</button></form></td></tr>{% endfor %}</tbody></table></div></dialog>
             <dialog id="bgModal" class="rounded-xl bg-slate-900 border border-slate-700 text-gray-200 w-96 backdrop:bg-black/80"><form action="/upload_story_background" method="post" enctype="multipart/form-data" class="p-6"><h2 class="text-lg font-bold text-indigo-400 mb-4">Change Story Background</h2><input type="hidden" name="return_path" value="{{ filename }}"><input type="file" name="file" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-900 file:text-indigo-300 hover:file:bg-indigo-800 cursor-pointer mb-4 bg-slate-950 rounded border border-slate-700 p-1"/><div class="flex justify-end gap-2"><button type="button" onclick="this.closest('dialog').close()" class="text-gray-400 text-sm px-3 py-2">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold">Upload</button></div></form></dialog>
         {% endif %}
@@ -267,7 +280,7 @@ HTML_TEMPLATE = """
     </main>
     
     <dialog id="campaignModal" class="rounded-xl bg-slate-900 border border-slate-700 text-gray-200 w-96 backdrop:bg-black/80"><form action="/create_campaign" method="post" class="p-6"><h2 class="text-lg font-bold text-indigo-400 mb-4">New Campaign</h2><input type="text" name="name" placeholder="Name" class="input-dark mb-4" required><div class="flex justify-end gap-2"><button type="button" onclick="this.closest('dialog').close()" class="text-gray-400 text-sm px-3 py-2">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold">Create</button></div></form></dialog>
-    <dialog id="storyMetaModal" class="rounded-xl bg-slate-900 border border-slate-700 text-gray-200 w-[500px] backdrop:bg-black/80"><form action="/update_story_meta" method="post" class="flex flex-col h-full"><div class="p-6 border-b border-slate-800"><h2 class="text-lg font-bold text-indigo-400">Edit Details</h2><input type="hidden" name="current_path" id="metaPathInput"></div><div class="p-6 space-y-4"><div><label class="text-xs font-bold text-gray-500 uppercase">Display Title</label><input type="text" name="title" id="metaTitleInput" class="input-dark mt-1"></div><div><label class="text-xs font-bold text-gray-500 uppercase">Rating</label><select name="rating" id="metaRatingInput" class="input-dark mt-1"><option value="0">Unrated</option><option value="1">1 Star</option><option value="2">2 Stars</option><option value="3">3 Stars</option><option value="4">4 Stars</option><option value="5">5 Stars</option></select></div><div><label class="text-xs font-bold text-gray-500 uppercase">Synopsis</label><textarea name="synopsis" id="metaSynopsisInput" rows="3" class="input-dark mt-1"></textarea></div><div><label class="text-xs font-bold text-gray-500 uppercase">Tags</label><input type="text" name="tags" id="metaTagsInput" class="input-dark mt-1"></div><div><label class="text-xs font-bold text-gray-500 uppercase">Campaign</label><select name="campaign" id="metaCampaignInput" class="input-dark mt-1">{% for camp in campaigns %}<option value="{{ camp }}">{{ camp }}</option>{% endfor %}</select></div></div><div class="p-4 border-t border-slate-800 flex justify-end gap-2 bg-slate-900"><button type="button" onclick="this.closest('dialog').close()" class="text-gray-400 text-sm px-3 py-2">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold">Save</button></div></form></dialog>
+    <dialog id="storyMetaModal" class="rounded-xl bg-slate-900 border border-slate-700 text-gray-200 w-[500px] backdrop:bg-black/80"><form action="/update_story_meta" method="post" class="flex flex-col h-full"><div class="p-6 border-b border-slate-800"><h2 class="text-lg font-bold text-indigo-400">Edit Details</h2><input type="hidden" name="current_path" id="metaPathInput"></div><div class="p-6 space-y-4"><div><label class="text-xs font-bold text-gray-500 uppercase">Display Title</label><input type="text" name="title" id="metaTitleInput" class="input-dark mt-1"></div><div><label class="text-xs font-bold text-gray-500 uppercase">Rating</label><select name="rating" id="metaRatingInput" class="input-dark mt-1"><option value="0">Unrated</option><option value="1">1 Star</option><option value="2">2 Stars</option><option value="3">3 Stars</option><option value="4">4 Stars</option><option value="5">5 Stars</option></select></div><div><label class="text-xs font-bold text-gray-500 uppercase">Format</label><select name="format_type" id="metaFormatInput" class="input-dark mt-1"><option value="star_rp">Star RP (*action*)</option><option value="markdown">Markdown (**bold**)</option><option value="novel">Novel Style ("quote")</option></select></div><div><label class="text-xs font-bold text-gray-500 uppercase">Synopsis</label><textarea name="synopsis" id="metaSynopsisInput" rows="3" class="input-dark mt-1"></textarea></div><div><label class="text-xs font-bold text-gray-500 uppercase">Tags</label><input type="text" name="tags" id="metaTagsInput" class="input-dark mt-1"></div><div><label class="text-xs font-bold text-gray-500 uppercase">Campaign</label><select name="campaign" id="metaCampaignInput" class="input-dark mt-1">{% for camp in campaigns %}<option value="{{ camp }}">{{ camp }}</option>{% endfor %}</select></div></div><div class="p-4 border-t border-slate-800 flex justify-end gap-2 bg-slate-900"><button type="button" onclick="this.closest('dialog').close()" class="text-gray-400 text-sm px-3 py-2">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold">Save</button></div></form></dialog>
     <dialog id="editModal" class="rounded-xl shadow-2xl bg-slate-900 border border-slate-700 text-gray-200 w-[500px] backdrop:bg-black/80 max-h-[90vh]"><form action="/update_character_details" method="post" enctype="multipart/form-data" class="flex flex-col h-full"><div class="p-6 border-b border-slate-800 bg-slate-900 sticky top-0 z-10"><h2 class="text-lg font-bold text-indigo-400">Edit <span id="modalCharNameDisplay"></span></h2><input type="hidden" id="modalCharIdInput" name="char_id" value=""><input type="hidden" name="return_file" value="{{ filename | default('') }}"></div><div class="p-6 overflow-y-auto space-y-4"><div class="flex gap-4"><div class="flex-1"><label class="text-xs text-gray-500 uppercase font-bold">Display Name</label><input type="text" id="modalNameInput" name="name" class="input-dark mt-1"></div><div><label class="text-xs text-gray-500 uppercase font-bold">Chat Color</label><div class="flex items-center gap-2 mt-1"><input type="color" id="modalBubbleColor" name="bubble_color" class="h-9 w-9 bg-transparent cursor-pointer rounded"></div></div></div><div><label class="text-xs text-gray-500 uppercase font-bold">Avatar</label><input type="file" name="avatar" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-900 file:text-indigo-300 hover:file:bg-indigo-800 cursor-pointer mt-2 bg-slate-950 rounded border border-slate-700 p-1"/></div><div><label class="text-xs text-gray-500 uppercase font-bold">Bio</label><textarea name="description" id="modalDescription" rows="3" class="input-dark mt-1"></textarea></div><div class="p-3 bg-slate-950 rounded border border-slate-800"><label class="text-xs text-gray-500 uppercase font-bold block mb-2">Core Stats</label><div class="grid grid-cols-2 gap-2"><input type="text" name="attr_keys" value="Age" class="hidden"><input type="text" id="modalAge" name="attr_values" placeholder="Age" class="input-dark text-xs"><input type="text" name="attr_keys" value="Gender" class="hidden"><input type="text" id="modalGender" name="attr_values" placeholder="Gender" class="input-dark text-xs"><input type="text" name="attr_keys" value="Race" class="hidden"><input type="text" id="modalRace" name="attr_values" placeholder="Race" class="input-dark text-xs"><input type="text" name="attr_keys" value="Orientation" class="hidden"><input type="text" id="modalOrient" name="attr_values" placeholder="Orientation" class="input-dark text-xs"></div></div><div><div class="flex justify-between items-center mb-2"><label class="text-xs text-gray-500 uppercase font-bold">Extra Attributes</label><button type="button" onclick="addAttrRow()" class="text-xs bg-indigo-900 text-indigo-300 px-2 py-1 rounded hover:bg-indigo-800 transition"><i class="fas fa-plus mr-1"></i> Add</button></div><div id="attributesContainer" class="space-y-2"></div></div></div><div class="p-4 border-t border-slate-800 flex justify-end gap-2 bg-slate-900 sticky bottom-0"><button type="button" onclick="document.getElementById('editModal').close()" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition">Cancel</button><button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-sm font-bold">Save Changes</button></div></form></dialog>
     <dialog id="importStoryModal" class="rounded-xl bg-slate-900 border border-slate-700 text-gray-200 w-[500px] backdrop:bg-black/80"><div class="p-6"><h2 class="text-lg font-bold text-indigo-400 mb-4">Add New Story</h2><div class="flex gap-2 mb-4 border-b border-slate-700 pb-2"><button onclick="showImportTab('file')" id="tab-file" class="px-3 py-1 text-sm font-bold text-white border-b-2 border-indigo-500 transition">Upload File</button><button onclick="showImportTab('text')" id="tab-text" class="px-3 py-1 text-sm text-gray-400 hover:text-white transition">Write / Paste</button></div><form id="form-file" action="/import_story_file" method="post" enctype="multipart/form-data" class="space-y-4"><div><label class="text-xs font-bold text-gray-500 uppercase">Select File (.txt)</label><input type="file" name="file" accept=".txt" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-900 file:text-indigo-300 hover:file:bg-indigo-800 cursor-pointer mt-2 bg-slate-950 rounded border border-slate-700 p-1"/></div><div><label class="text-xs font-bold text-gray-500 uppercase">Campaign</label><select name="campaign" class="input-dark mt-1"><option value="Unsorted">Unsorted</option>{% for camp in campaigns %}{% if camp != "Unsorted" %}<option value="{{ camp }}">{{ camp }}</option>{% endif %}{% endfor %}</select></div><div class="flex justify-end gap-2 pt-2"><button type="button" onclick="this.closest('dialog').close()" class="text-gray-400 text-sm px-3 py-2">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold">Upload</button></div></form><form id="form-text" action="/import_story_text" method="post" class="space-y-4 hidden"><div><label class="text-xs font-bold text-gray-500 uppercase">Story Title</label><input type="text" name="title" class="input-dark mt-1" placeholder="e.g. The Tavern Brawl" required></div><div><label class="text-xs font-bold text-gray-500 uppercase">Content</label><textarea name="content" rows="10" class="input-dark mt-1 font-mono text-xs" placeholder="Paste your log here..." required></textarea></div><div><label class="text-xs font-bold text-gray-500 uppercase">Campaign</label><select name="campaign" class="input-dark mt-1"><option value="Unsorted">Unsorted</option>{% for camp in campaigns %}{% if camp != "Unsorted" %}<option value="{{ camp }}">{{ camp }}</option>{% endif %}{% endfor %}</select></div><div class="flex justify-end gap-2 pt-2"><button type="button" onclick="this.closest('dialog').close()" class="text-gray-400 text-sm px-3 py-2">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold">Save Story</button></div></form></div></dialog>
 
@@ -290,6 +303,9 @@ HTML_TEMPLATE = """
             document.getElementById('metaTagsInput').value = item.meta.tags.join(", ");
             // Set Rating
             document.getElementById('metaRatingInput').value = item.meta.rating || 0;
+            // Set Format
+            document.getElementById('metaFormatInput').value = item.meta.format_type || 'star_rp';
+            
             const parts = item.path.split('/');
             const currentCamp = parts.length > 1 ? parts[0] : "Unsorted";
             document.getElementById('metaCampaignInput').value = currentCamp;
@@ -348,7 +364,12 @@ async def dashboard(request: Request):
             "stats": story_parser.get_file_stats(full_path)
         })
     stats = {"total_stories": total_stories, "total_chars": len(all_chars), "total_campaigns": len(campaigns) - 1, "total_prompts": len(all_prompts)}
-    return jinja_template.render(mode="dashboard", stats=stats, recent_stories=recent_data, campaigns=campaigns)
+    return jinja_template.render(
+        mode="dashboard", 
+        stats=stats, 
+        recent_stories=recent_data, 
+        campaigns=campaigns
+    )
 
 @app.get("/stories", response_class=HTMLResponse)
 async def stories_list(request: Request):
@@ -393,13 +414,27 @@ async def char_profile(char_id: str):
 async def read_story(path: str):
     full_path = os.path.join(story_manager.STORY_DIR, path)
     if not os.path.exists(full_path): raise HTTPException(404, "File not found")
-    blocks, local_stats = story_parser.parse_file(full_path)
+    # Get metadata
+    meta = story_manager.get_story_meta(path)
+    format_type = meta.get("format_type", "star_rp")
+    background_file = meta.get("background_file")
+    
+    # Parse with format
+    blocks, local_stats = story_parser.parse_file(full_path, format_type=format_type)
+    
     characters = character_manager.get_cast_for_story(path, local_stats)
     all_db_chars = character_manager.get_all_characters()
     char_map = {c['raw_name']: c for c in characters}
-    meta = story_manager.get_story_meta(path)
-    background_file = meta.get("background_file")
-    return jinja_template.render(mode="read", blocks=blocks, characters=characters, all_db_chars=all_db_chars, filename=path, char_map=char_map, background_file=background_file)
+    
+    return jinja_template.render(
+        mode="read", 
+        blocks=blocks, 
+        characters=characters, 
+        all_db_chars=all_db_chars, 
+        filename=path, 
+        char_map=char_map, 
+        background_file=background_file
+    )
 
 # --- ACTIONS ---
 @app.post("/create_campaign")
@@ -408,9 +443,17 @@ async def create_campaign(name: str = Form(...)):
     return RedirectResponse(url="/", status_code=303)
 
 @app.post("/update_story_meta")
-async def update_story_meta(current_path: str = Form(...), title: str = Form(...), synopsis: str = Form(""), tags: str = Form(""), campaign: str = Form(...), rating: int = Form(0)):
+async def update_story_meta(
+    current_path: str = Form(...), 
+    title: str = Form(...), 
+    synopsis: str = Form(""), 
+    tags: str = Form(""), 
+    campaign: str = Form(...), 
+    rating: int = Form(0),
+    format_type: str = Form("star_rp")
+):
     tag_list = [t.strip() for t in tags.split(",") if t.strip()]
-    story_manager.update_story_meta(current_path, title, synopsis, tag_list, rating=rating)
+    story_manager.update_story_meta(current_path, title, synopsis, tag_list, rating=rating, format_type=format_type)
     parts = current_path.replace("\\", "/").split("/")
     current_camp = parts[0] if len(parts) > 1 else "Unsorted"
     if campaign != current_camp: story_manager.move_story_to_campaign(current_path, campaign)
@@ -433,7 +476,12 @@ async def link_character(filename: str = Form(...), raw_name: str = Form(...), c
     return RedirectResponse(url=f"/read/{filename}", status_code=303)
 
 @app.post("/update_character_details")
-async def update_character_details(char_id: str = Form(...), name: str = Form(...), description: str = Form(""), return_file: str = Form(None), bubble_color: str = Form("#1e293b"), avatar: Optional[UploadFile] = File(None), attr_keys: List[str] = Form([]), attr_values: List[str] = Form([])):
+async def update_character_details(
+    char_id: str = Form(...), name: str = Form(...), description: str = Form(""),
+    return_file: str = Form(None), bubble_color: str = Form("#1e293b"),
+    avatar: Optional[UploadFile] = File(None),
+    attr_keys: List[str] = Form([]), attr_values: List[str] = Form([])
+):
     avatar_filename = None
     if avatar and avatar.filename: avatar_filename = character_manager.save_avatar(char_id, avatar.file, avatar.filename)
     attributes = {}
