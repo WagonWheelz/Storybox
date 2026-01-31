@@ -32,7 +32,7 @@ HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html class="dark">
 <head>
-    <title>StoryBox</title>
+    <title>StoryStash RP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
@@ -50,7 +50,6 @@ HTML_TEMPLATE = """
         .tag-gray { background: #1f2937; color: #9ca3af; border: 1px solid #374151; }
         .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(51, 65, 85, 0.5); }
         
-        /* Markdown Specific Styles */
         .markdown-content p { margin-bottom: 0.5em; }
         .markdown-content strong { color: #fff; font-weight: bold; }
         .markdown-content em { color: #a5b4fc; font-style: italic; }
@@ -62,7 +61,7 @@ HTML_TEMPLATE = """
 
     <header class="bg-slate-900 border-b border-slate-800 p-4 shadow-lg flex justify-between items-center z-10 shrink-0 relative">
         <div class="flex items-center gap-6">
-            <h1 class="text-xl font-bold text-indigo-400">StoryBox <span class="text-xs text-gray-500">v4.5</span></h1>
+            <h1 class="text-xl font-bold text-indigo-400">StoryStash <span class="text-xs text-gray-500">v4.6</span></h1>
             <nav class="flex gap-4 text-sm font-medium">
                 <a href="/" class="{{ 'text-white font-bold' if mode == 'dashboard' else 'text-gray-400 hover:text-white' }}">Dashboard</a>
                 <a href="/stories" class="{{ 'text-white font-bold' if mode == 'stories_list' else 'text-gray-400 hover:text-white' }}">Stories</a>
@@ -80,6 +79,9 @@ HTML_TEMPLATE = """
         
         {% if mode == 'read' %}
         <div class="flex gap-2">
+            <a href="/edit_story/{{ filename }}" class="bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded text-sm border border-slate-700" title="Edit Raw Text">
+                <i class="fas fa-edit"></i>
+            </a>
             <button onclick="document.getElementById('bgModal').showModal()" class="bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded text-sm border border-slate-700" title="Change Background">
                 <i class="fas fa-image"></i>
             </button>
@@ -187,7 +189,6 @@ HTML_TEMPLATE = """
                         <div><label class="text-xs font-bold text-gray-500 uppercase">Title</label><input type="text" name="title" class="input-dark mt-1" required></div>
                         <div><label class="text-xs font-bold text-gray-500 uppercase">Prompt Content</label><textarea name="content" rows="8" class="input-dark mt-1 font-serif text-sm" required></textarea></div>
                         <div><label class="text-xs font-bold text-gray-500 uppercase">Tags (comma separated)</label><input type="text" name="tags" class="input-dark mt-1" placeholder="e.g. Romance, Sci-Fi, Conflict"></div>
-                        
                         <div>
                             <label class="text-xs font-bold text-gray-500 uppercase block mb-2">Assign Characters</label>
                             <div class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto bg-slate-950 p-2 rounded border border-slate-800">
@@ -268,6 +269,21 @@ HTML_TEMPLATE = """
             <div class="flex-1 h-full overflow-y-auto z-10">
                 <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-white">Character Database</h2><div class="flex gap-4 items-center"><form action="/import_character" method="post" enctype="multipart/form-data" class="flex gap-2"><label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded text-sm border border-slate-700 font-medium"><i class="fas fa-file-import mr-1"></i> Import Card (PNG)<input type="file" name="file" accept=".png" class="hidden" onchange="this.form.submit()"></label></form><form action="/create_character_quick" method="post" class="flex gap-2 border-l border-slate-700 pl-4"><input type="text" name="name" placeholder="New Character Name" class="input-dark py-1 px-3 w-64" required><button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1 rounded text-sm font-bold">Create</button></form></div></div>
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">{% for id, char in all_chars.items() %}<a href="/character/{{ id }}" class="block bg-slate-900 rounded-xl border border-slate-800 overflow-hidden hover:border-indigo-500 hover:shadow-lg transition group"><div class="aspect-square bg-slate-800 w-full relative">{% if char.get('avatar_file') %}<img src="/avatars/{{ char.avatar_file }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full flex items-center justify-center text-4xl font-bold text-white/20">{{ char.get('name', '?')[:1] }}</div>{% endif %}<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3 pt-8"><h3 class="font-bold text-white truncate">{{ char.get('name', 'Unknown') }}</h3></div></div></a>{% endfor %}</div>
+            </div>
+
+        {% elif mode == 'edit_story' %}
+            <div class="flex-1 max-w-4xl h-full overflow-hidden flex flex-col z-10">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">Edit Story Content</h2>
+                    <div class="flex gap-2">
+                        <a href="/read/{{ filename }}" class="text-gray-400 hover:text-white px-4 py-2 text-sm font-medium">Cancel</a>
+                        <button form="editForm" type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-indigo-500/20">Save Changes</button>
+                    </div>
+                </div>
+                <form id="editForm" action="/save_story_text" method="post" class="flex-1 border border-slate-700 rounded-xl overflow-hidden shadow-2xl">
+                    <input type="hidden" name="path" value="{{ filename }}">
+                    <textarea name="content" class="w-full h-full bg-slate-950 text-gray-300 p-6 font-mono text-sm resize-none focus:outline-none leading-relaxed">{{ content }}</textarea>
+                </form>
             </div>
 
         {% elif mode == 'read' %}
@@ -435,6 +451,22 @@ async def read_story(path: str):
         char_map=char_map, 
         background_file=background_file
     )
+
+# NEW: Route to Load Edit Interface
+@app.get("/edit_story/{path:path}", response_class=HTMLResponse)
+async def edit_story_view(path: str):
+    content = story_manager.read_raw_story(path)
+    return jinja_template.render(
+        mode="edit_story",
+        filename=path,
+        content=content
+    )
+
+# NEW: Route to Save Edit
+@app.post("/save_story_text")
+async def save_story_text(path: str = Form(...), content: str = Form(...)):
+    story_manager.overwrite_story_content(path, content)
+    return RedirectResponse(url=f"/read/{path}", status_code=303)
 
 # --- ACTIONS ---
 @app.post("/create_campaign")
