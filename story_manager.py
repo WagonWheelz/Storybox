@@ -222,3 +222,17 @@ def save_story_from_file(file_object, original_filename):
         counter += 1
     with open(file_path, "wb+") as dest: shutil.copyfileobj(file_object, dest)
     return os.path.basename(file_path)
+# ---------------------------------------------------------
+# CONTENT EDITING (NEW)
+# ---------------------------------------------------------
+def read_raw_story(rel_path):
+    full_path = os.path.join(STORY_DIR, rel_path)
+    if os.path.exists(full_path):
+        with open(full_path, 'r', encoding='utf-8', errors='ignore') as f:
+            return f.read()
+    return ""
+
+def overwrite_story_content(rel_path, content):
+    full_path = os.path.join(STORY_DIR, rel_path)
+    with open(full_path, 'w', encoding='utf-8') as f:
+        f.write(content)
