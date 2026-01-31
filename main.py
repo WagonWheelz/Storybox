@@ -61,7 +61,7 @@ HTML_TEMPLATE = """
 
     <header class="bg-slate-900 border-b border-slate-800 p-4 shadow-lg flex justify-between items-center z-10 shrink-0 relative">
         <div class="flex items-center gap-6">
-            <h1 class="text-xl font-bold text-indigo-400">StoryStash <span class="text-xs text-gray-500">v4.6</span></h1>
+            <h1 class="text-xl font-bold text-indigo-400">StoryStash <span class="text-xs text-gray-500">v4.8</span></h1>
             <nav class="flex gap-4 text-sm font-medium">
                 <a href="/" class="{{ 'text-white font-bold' if mode == 'dashboard' else 'text-gray-400 hover:text-white' }}">Dashboard</a>
                 <a href="/stories" class="{{ 'text-white font-bold' if mode == 'stories_list' else 'text-gray-400 hover:text-white' }}">Stories</a>
@@ -79,29 +79,17 @@ HTML_TEMPLATE = """
         
         {% if mode == 'read' %}
         <div class="flex gap-2">
-            <a href="/edit_story/{{ filename }}" class="bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded text-sm border border-slate-700" title="Edit Raw Text">
-                <i class="fas fa-edit"></i>
-            </a>
-            <button onclick="document.getElementById('bgModal').showModal()" class="bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded text-sm border border-slate-700" title="Change Background">
-                <i class="fas fa-image"></i>
-            </button>
-            <button onclick="document.getElementById('castModal').showModal()" class="bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded text-sm border border-slate-700">
-                <i class="fas fa-users-cog mr-2"></i> Manage Cast
-            </button>
+            <a href="/edit_story/{{ filename }}" class="bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded text-sm border border-slate-700" title="Edit Raw Text"><i class="fas fa-edit"></i></a>
+            <button onclick="document.getElementById('bgModal').showModal()" class="bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded text-sm border border-slate-700" title="Change Background"><i class="fas fa-image"></i></button>
+            <button onclick="document.getElementById('castModal').showModal()" class="bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded text-sm border border-slate-700"><i class="fas fa-users-cog mr-2"></i> Manage Cast</button>
         </div>
         {% elif mode == 'prompts_list' %}
-        <button onclick="document.getElementById('createPromptModal').showModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded text-sm font-bold shadow-lg shadow-indigo-500/20">
-            <i class="fas fa-plus mr-2"></i> New Prompt
-        </button>
+        <button onclick="document.getElementById('createPromptModal').showModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded text-sm font-bold shadow-lg shadow-indigo-500/20"><i class="fas fa-plus mr-2"></i> New Prompt</button>
         {% endif %}
     </header>
 
-    <main class="flex-1 overflow-hidden w-full flex justify-center p-6 gap-6 relative" 
-          style="{{ 'background-image: url(/backgrounds/' + background_file + '); background-size: cover; background-position: center;' if background_file else '' }}">
-        
-        {% if background_file %}
-        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm pointer-events-none z-0"></div>
-        {% endif %}
+    <main class="flex-1 overflow-hidden w-full flex justify-center p-6 gap-6 relative" style="{{ 'background-image: url(/backgrounds/' + background_file + '); background-size: cover; background-position: center;' if background_file else '' }}">
+        {% if background_file %}<div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm pointer-events-none z-0"></div>{% endif %}
 
         {% if mode == 'dashboard' %}
             <div class="flex-1 max-w-6xl h-full overflow-y-auto space-y-8 z-10">
@@ -117,19 +105,7 @@ HTML_TEMPLATE = """
                         <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold text-white">Recent Updates</h3><a href="/stories" class="text-xs text-indigo-400 hover:text-indigo-300">View All</a></div>
                         <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
                             {% for story in recent_stories %}
-                            <a href="/read/{{ story.path }}" class="flex items-center justify-between p-4 border-b border-slate-800 hover:bg-slate-800/50 transition last:border-0">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-8 h-8 rounded bg-slate-800 flex items-center justify-center text-gray-500"><i class="fas fa-file-alt"></i></div>
-                                    <div>
-                                        <div class="font-bold text-gray-200">{{ story.meta.display_title }}</div>
-                                        <div class="flex gap-2">
-                                            <div class="text-yellow-500 text-xs flex">{% for i in range(story.meta.rating) %}<i class="fas fa-star"></i>{% endfor %}</div>
-                                            <div class="text-xs text-gray-500">{{ story.path }}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="text-xs text-gray-500">{{ story.stats.date }}</div>
-                            </a>
+                            <a href="/read/{{ story.path }}" class="flex items-center justify-between p-4 border-b border-slate-800 hover:bg-slate-800/50 transition last:border-0"><div class="flex items-center gap-4"><div class="w-8 h-8 rounded bg-slate-800 flex items-center justify-center text-gray-500"><i class="fas fa-file-alt"></i></div><div><div class="font-bold text-gray-200">{{ story.meta.display_title }}</div><div class="flex gap-2"><div class="text-yellow-500 text-xs flex">{% for i in range(story.meta.rating) %}<i class="fas fa-star"></i>{% endfor %}</div><div class="text-xs text-gray-500">{{ story.path }}</div></div></div></div><div class="text-xs text-gray-500">{{ story.stats.date }}</div></a>
                             {% endfor %}
                         </div>
                     </div>
@@ -147,66 +123,9 @@ HTML_TEMPLATE = """
         {% elif mode == 'prompts_list' %}
             <div class="flex-1 max-w-6xl h-full overflow-y-auto z-10">
                 <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-white">Roleplay Prompts</h2></div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {% for pid, prompt in prompts.items() %}
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-indigo-500 transition flex flex-col h-[300px] relative group">
-                        <form action="/delete_prompt" method="post" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition" onsubmit="return confirm('Delete prompt?');">
-                            <input type="hidden" name="pid" value="{{ pid }}">
-                            <button class="text-gray-600 hover:text-red-500"><i class="fas fa-trash"></i></button>
-                        </form>
-                        <h3 class="text-lg font-bold text-indigo-400 mb-2 truncate">{{ prompt.title }}</h3>
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            {% for tag in prompt.tags %}<span class="tag tag-purple">{{ tag }}</span>{% endfor %}
-                        </div>
-                        <div class="flex-1 bg-slate-950/50 p-3 rounded text-sm text-gray-300 overflow-y-auto mb-4 font-serif leading-relaxed italic whitespace-pre-wrap">{{ prompt.content }}</div>
-                        <div class="border-t border-slate-800 pt-3 flex items-center gap-2 overflow-x-auto">
-                            <span class="text-[10px] uppercase font-bold text-gray-600 shrink-0">Assigned:</span>
-                            {% if prompt.linked_chars %}
-                                {% for cid in prompt.linked_chars %}
-                                    {% if all_chars.get(cid) %}
-                                    <div class="w-6 h-6 rounded-full bg-slate-800 border border-slate-600 overflow-hidden shrink-0" title="{{ all_chars[cid].name }}">
-                                        {% if all_chars[cid].avatar_file %}
-                                        <img src="/avatars/{{ all_chars[cid].avatar_file }}" class="w-full h-full object-cover">
-                                        {% else %}
-                                        <div class="w-full h-full flex items-center justify-center text-[8px]">{{ all_chars[cid].name[:1] }}</div>
-                                        {% endif %}
-                                    </div>
-                                    {% endif %}
-                                {% endfor %}
-                            {% else %}
-                                <span class="text-[10px] text-gray-600 italic">None</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{% for pid, prompt in prompts.items() %}<div class="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-indigo-500 transition flex flex-col h-[300px] relative group"><form action="/delete_prompt" method="post" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition" onsubmit="return confirm('Delete prompt?');"><input type="hidden" name="pid" value="{{ pid }}"><button class="text-gray-600 hover:text-red-500"><i class="fas fa-trash"></i></button></form><h3 class="text-lg font-bold text-indigo-400 mb-2 truncate">{{ prompt.title }}</h3><div class="flex flex-wrap gap-2 mb-4">{% for tag in prompt.tags %}<span class="tag tag-purple">{{ tag }}</span>{% endfor %}</div><div class="flex-1 bg-slate-950/50 p-3 rounded text-sm text-gray-300 overflow-y-auto mb-4 font-serif leading-relaxed italic whitespace-pre-wrap">{{ prompt.content }}</div><div class="border-t border-slate-800 pt-3 flex items-center gap-2 overflow-x-auto"><span class="text-[10px] uppercase font-bold text-gray-600 shrink-0">Assigned:</span>{% if prompt.linked_chars %}{% for cid in prompt.linked_chars %}{% if all_chars.get(cid) %}<div class="w-6 h-6 rounded-full bg-slate-800 border border-slate-600 overflow-hidden shrink-0" title="{{ all_chars[cid].name }}">{% if all_chars[cid].avatar_file %}<img src="/avatars/{{ all_chars[cid].avatar_file }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full flex items-center justify-center text-[8px]">{{ all_chars[cid].name[:1] }}</div>{% endif %}</div>{% endif %}{% endfor %}{% else %}<span class="text-[10px] text-gray-600 italic">None</span>{% endif %}</div></div>{% endfor %}</div>
             </div>
-            
-            <dialog id="createPromptModal" class="rounded-xl bg-slate-900 border border-slate-700 text-gray-200 w-[600px] backdrop:bg-black/80">
-                <form action="/create_prompt" method="post" class="flex flex-col h-[80vh]">
-                    <div class="p-6 border-b border-slate-800"><h2 class="text-lg font-bold text-indigo-400">Create New Prompt</h2></div>
-                    <div class="p-6 overflow-y-auto space-y-4 flex-1">
-                        <div><label class="text-xs font-bold text-gray-500 uppercase">Title</label><input type="text" name="title" class="input-dark mt-1" required></div>
-                        <div><label class="text-xs font-bold text-gray-500 uppercase">Prompt Content</label><textarea name="content" rows="8" class="input-dark mt-1 font-serif text-sm" required></textarea></div>
-                        <div><label class="text-xs font-bold text-gray-500 uppercase">Tags (comma separated)</label><input type="text" name="tags" class="input-dark mt-1" placeholder="e.g. Romance, Sci-Fi, Conflict"></div>
-                        <div>
-                            <label class="text-xs font-bold text-gray-500 uppercase block mb-2">Assign Characters</label>
-                            <div class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto bg-slate-950 p-2 rounded border border-slate-800">
-                                {% for cid, char in all_chars.items() %}
-                                <label class="flex items-center gap-2 text-sm text-gray-300 hover:bg-slate-900 p-1 rounded cursor-pointer">
-                                    <input type="checkbox" name="linked_chars" value="{{ cid }}" class="accent-indigo-500">
-                                    <div class="w-5 h-5 rounded-full bg-slate-800 overflow-hidden">
-                                        {% if char.avatar_file %}<img src="/avatars/{{ char.avatar_file }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full flex items-center justify-center text-[8px]">{{ char.name[:1] }}</div>{% endif %}
-                                    </div>
-                                    <span class="truncate">{{ char.name }}</span>
-                                </label>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-4 border-t border-slate-800 flex justify-end gap-2 bg-slate-900"><button type="button" onclick="this.closest('dialog').close()" class="text-gray-400 text-sm px-3 py-2">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold">Create Prompt</button></div>
-                </form>
-            </dialog>
+            <dialog id="createPromptModal" class="rounded-xl bg-slate-900 border border-slate-700 text-gray-200 w-[600px] backdrop:bg-black/80"><form action="/create_prompt" method="post" class="flex flex-col h-[80vh]"><div class="p-6 border-b border-slate-800"><h2 class="text-lg font-bold text-indigo-400">Create New Prompt</h2></div><div class="p-6 overflow-y-auto space-y-4 flex-1"><div><label class="text-xs font-bold text-gray-500 uppercase">Title</label><input type="text" name="title" class="input-dark mt-1" required></div><div><label class="text-xs font-bold text-gray-500 uppercase">Prompt Content</label><textarea name="content" rows="8" class="input-dark mt-1 font-serif text-sm" required></textarea></div><div><label class="text-xs font-bold text-gray-500 uppercase">Tags (comma separated)</label><input type="text" name="tags" class="input-dark mt-1" placeholder="e.g. Romance, Sci-Fi, Conflict"></div><div><label class="text-xs font-bold text-gray-500 uppercase block mb-2">Assign Characters</label><div class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto bg-slate-950 p-2 rounded border border-slate-800">{% for cid, char in all_chars.items() %}<label class="flex items-center gap-2 text-sm text-gray-300 hover:bg-slate-900 p-1 rounded cursor-pointer"><input type="checkbox" name="linked_chars" value="{{ cid }}" class="accent-indigo-500"><div class="w-5 h-5 rounded-full bg-slate-800 overflow-hidden">{% if char.avatar_file %}<img src="/avatars/{{ char.avatar_file }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full flex items-center justify-center text-[8px]">{{ char.name[:1] }}</div>{% endif %}</div><span class="truncate">{{ char.name }}</span></label>{% endfor %}</div></div></div><div class="p-4 border-t border-slate-800 flex justify-end gap-2 bg-slate-900"><button type="button" onclick="this.closest('dialog').close()" class="text-gray-400 text-sm px-3 py-2">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold">Create Prompt</button></div></form></dialog>
 
         {% elif mode == 'char_profile' %}
             <div class="flex-1 h-full overflow-hidden flex gap-8 z-10">
@@ -215,9 +134,7 @@ HTML_TEMPLATE = """
                         <button onclick='openEditModal({{ char | tojson }})' class="absolute top-2 right-2 text-gray-500 hover:text-indigo-400" title="Edit"><i class="fas fa-pencil-alt"></i></button>
                         <form action="/delete_character" method="post" onsubmit="return confirm('Delete?');"><input type="hidden" name="char_id" value="{{ char_id }}"><button type="submit" class="absolute top-2 left-2 text-gray-600 hover:text-red-500 transition" title="Delete"><i class="fas fa-trash"></i></button></form>
                         <a href="/export_character/{{ char_id }}" target="_blank" class="absolute bottom-2 right-2 text-gray-600 hover:text-blue-400 transition" title="Export Card"><i class="fas fa-address-card"></i></a>
-                        <div class="w-48 h-48 rounded-lg shadow-2xl border-2 border-slate-700 overflow-hidden mb-4 bg-slate-800">
-                            {% if char.get('avatar_file') %}<img src="/avatars/{{ char.avatar_file }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full flex items-center justify-center text-6xl font-bold text-white/20">{{ char.get('name', '?')[:1] }}</div>{% endif %}
-                        </div>
+                        <div class="w-48 h-48 rounded-lg shadow-2xl border-2 border-slate-700 overflow-hidden mb-4 bg-slate-800">{% if char.get('avatar_file') %}<img src="/avatars/{{ char.avatar_file }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full flex items-center justify-center text-6xl font-bold text-white/20">{{ char.get('name', '?')[:1] }}</div>{% endif %}</div>
                         <h1 class="text-2xl font-bold text-white text-center">{{ char.get('name', 'Unknown') }}</h1>
                         <div class="w-full mt-6 space-y-3">
                             <div class="flex justify-between border-b border-slate-800 pb-1"><span class="text-xs uppercase text-gray-500 font-bold">Age</span><span class="text-sm text-gray-200">{{ char.attributes.get('Age', 'Unknown') }}</span></div>
@@ -227,25 +144,21 @@ HTML_TEMPLATE = """
                             {% for key, val in char.attributes.items() %}{% if key not in ['Age', 'Gender', 'Race', 'Orientation'] %}<div class="flex justify-between border-b border-slate-800 pb-1"><span class="text-xs uppercase text-gray-500 font-bold truncate max-w-[100px]">{{ key }}</span><span class="text-sm text-gray-400 truncate">{{ val }}</span></div>{% endif %}{% endfor %}
                         </div>
                     </div>
-                </aside>
-                <div class="flex-1 h-full overflow-y-auto space-y-8 pr-4">
-                    {% if assigned_prompts %}
-                    <section>
-                        <h2 class="text-xl font-bold text-amber-400 mb-2 border-b border-slate-800 pb-2"><i class="fas fa-lightbulb mr-2"></i> Assigned Prompts</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {% for p in assigned_prompts %}
-                            <div class="bg-slate-900 border border-slate-800 p-4 rounded-lg hover:border-amber-500/50 transition">
-                                <h3 class="font-bold text-gray-200 mb-2">{{ p.title }}</h3>
-                                <div class="text-xs text-gray-400 italic line-clamp-3 mb-2">{{ p.content }}</div>
-                                <div class="flex flex-wrap gap-1">
-                                    {% for tag in p.tags %}<span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-gray-500 border border-slate-700">{{ tag }}</span>{% endfor %}
-                                </div>
-                            </div>
+                    
+                    {% if played_by_list %}
+                    <div class="bg-slate-900 rounded-xl border border-slate-800 p-4 shadow-lg">
+                        <h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 border-b border-slate-800 pb-2">Played By</h2>
+                        <div class="flex flex-wrap gap-2">
+                            {% for player in played_by_list %}
+                            <span class="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-xs text-indigo-300 font-mono">{{ player }}</span>
                             {% endfor %}
                         </div>
-                    </section>
+                    </div>
                     {% endif %}
-
+                </aside>
+                
+                <div class="flex-1 h-full overflow-y-auto space-y-8 pr-4">
+                    {% if assigned_prompts %}<section><h2 class="text-xl font-bold text-amber-400 mb-2 border-b border-slate-800 pb-2"><i class="fas fa-lightbulb mr-2"></i> Assigned Prompts</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4">{% for p in assigned_prompts %}<div class="bg-slate-900 border border-slate-800 p-4 rounded-lg hover:border-amber-500/50 transition"><h3 class="font-bold text-gray-200 mb-2">{{ p.title }}</h3><div class="text-xs text-gray-400 italic line-clamp-3 mb-2">{{ p.content }}</div><div class="flex flex-wrap gap-1">{% for tag in p.tags %}<span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-gray-500 border border-slate-700">{{ tag }}</span>{% endfor %}</div></div>{% endfor %}</div></section>{% endif %}
                     <section><h2 class="text-xl font-bold text-indigo-400 mb-2 border-b border-slate-800 pb-2">Biography</h2><div class="bg-slate-900/50 p-6 rounded-xl border border-slate-800 text-gray-300 leading-relaxed italic">{{ char.description or "No biography." }}</div></section>
                     <section><h2 class="text-xl font-bold text-indigo-400 mb-2 border-b border-slate-800 pb-2">Appears In</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{% for story_path in stories %}<a href="/read/{{ story_path }}" class="block bg-slate-900 p-4 rounded-lg border border-slate-800 hover:border-indigo-500 transition"><i class="fas fa-file-alt text-indigo-500 mr-2"></i> {{ story_path }}</a>{% endfor %}{% if not stories %}<p class="text-gray-500 text-sm">Not linked to any stories.</p>{% endif %}</div></section>
                     <section><div class="flex justify-between items-center mb-2 border-b border-slate-800 pb-2"><h2 class="text-xl font-bold text-indigo-400">Gallery</h2><form action="/upload_gallery" method="post" enctype="multipart/form-data"><input type="hidden" name="char_id" value="{{ char_id }}"><label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1 rounded border border-slate-700 text-gray-300"><i class="fas fa-upload mr-1"></i> Add Image<input type="file" name="image" class="hidden" onchange="this.form.submit()"></label></form></div><div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">{% for img in char.get('gallery', []) %}<div class="aspect-square rounded-lg overflow-hidden border border-slate-800 bg-black cursor-pointer hover:border-indigo-500 transition" onclick="window.open('/gallery/{{ img }}', '_blank')"><img src="/gallery/{{ img }}" class="w-full h-full object-cover"></div>{% endfor %}</div></section>
@@ -266,28 +179,37 @@ HTML_TEMPLATE = """
             {{ modals | safe }}
 
         {% elif mode == 'char_list' %}
-            <div class="flex-1 h-full overflow-y-auto z-10">
-                <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-white">Character Database</h2><div class="flex gap-4 items-center"><form action="/import_character" method="post" enctype="multipart/form-data" class="flex gap-2"><label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded text-sm border border-slate-700 font-medium"><i class="fas fa-file-import mr-1"></i> Import Card (PNG)<input type="file" name="file" accept=".png" class="hidden" onchange="this.form.submit()"></label></form><form action="/create_character_quick" method="post" class="flex gap-2 border-l border-slate-700 pl-4"><input type="text" name="name" placeholder="New Character Name" class="input-dark py-1 px-3 w-64" required><button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1 rounded text-sm font-bold">Create</button></form></div></div>
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">{% for id, char in all_chars.items() %}<a href="/character/{{ id }}" class="block bg-slate-900 rounded-xl border border-slate-800 overflow-hidden hover:border-indigo-500 hover:shadow-lg transition group"><div class="aspect-square bg-slate-800 w-full relative">{% if char.get('avatar_file') %}<img src="/avatars/{{ char.avatar_file }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full flex items-center justify-center text-4xl font-bold text-white/20">{{ char.get('name', '?')[:1] }}</div>{% endif %}<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3 pt-8"><h3 class="font-bold text-white truncate">{{ char.get('name', 'Unknown') }}</h3></div></div></a>{% endfor %}</div>
-            </div>
+            <div class="flex-1 h-full overflow-y-auto z-10"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-white">Character Database</h2><div class="flex gap-4 items-center"><form action="/import_character" method="post" enctype="multipart/form-data" class="flex gap-2"><label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1 rounded text-sm border border-slate-700 font-medium"><i class="fas fa-file-import mr-1"></i> Import Card (PNG)<input type="file" name="file" accept=".png" class="hidden" onchange="this.form.submit()"></label></form><form action="/create_character_quick" method="post" class="flex gap-2 border-l border-slate-700 pl-4"><input type="text" name="name" placeholder="New Character Name" class="input-dark py-1 px-3 w-64" required><button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1 rounded text-sm font-bold">Create</button></form></div></div><div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">{% for id, char in all_chars.items() %}<a href="/character/{{ id }}" class="block bg-slate-900 rounded-xl border border-slate-800 overflow-hidden hover:border-indigo-500 hover:shadow-lg transition group"><div class="aspect-square bg-slate-800 w-full relative">{% if char.get('avatar_file') %}<img src="/avatars/{{ char.avatar_file }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full flex items-center justify-center text-4xl font-bold text-white/20">{{ char.get('name', '?')[:1] }}</div>{% endif %}<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3 pt-8"><h3 class="font-bold text-white truncate">{{ char.get('name', 'Unknown') }}</h3></div></div></a>{% endfor %}</div></div>
 
         {% elif mode == 'edit_story' %}
             <div class="flex-1 max-w-4xl h-full overflow-hidden flex flex-col z-10">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold text-white">Edit Story Content</h2>
-                    <div class="flex gap-2">
-                        <a href="/read/{{ filename }}" class="text-gray-400 hover:text-white px-4 py-2 text-sm font-medium">Cancel</a>
-                        <button form="editForm" type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-indigo-500/20">Save Changes</button>
-                    </div>
-                </div>
-                <form id="editForm" action="/save_story_text" method="post" class="flex-1 border border-slate-700 rounded-xl overflow-hidden shadow-2xl">
-                    <input type="hidden" name="path" value="{{ filename }}">
-                    <textarea name="content" class="w-full h-full bg-slate-950 text-gray-300 p-6 font-mono text-sm resize-none focus:outline-none leading-relaxed">{{ content }}</textarea>
-                </form>
+                <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold text-white">Edit Story Content</h2><div class="flex gap-2"><a href="/read/{{ filename }}" class="text-gray-400 hover:text-white px-4 py-2 text-sm font-medium">Cancel</a><button form="editForm" type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-indigo-500/20">Save Changes</button></div></div>
+                <form id="editForm" action="/save_story_text" method="post" class="flex-1 border border-slate-700 rounded-xl overflow-hidden shadow-2xl"><input type="hidden" name="path" value="{{ filename }}"><textarea name="content" class="w-full h-full bg-slate-950 text-gray-300 p-6 font-mono text-sm resize-none focus:outline-none leading-relaxed">{{ content }}</textarea></form>
             </div>
 
         {% elif mode == 'read' %}
-            <aside class="w-80 hidden md:block shrink-0 sidebar-container space-y-6 z-10">{% for char in characters %}<div class="glass-panel rounded-xl overflow-hidden shadow-lg flex flex-col relative group">{% if char.id %}<a href="/character/{{ char.id }}" class="absolute top-2 left-2 z-10 bg-black/50 hover:bg-indigo-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition"><i class="fas fa-external-link-alt text-xs"></i></a><button onclick='openEditModal({{ char | tojson }})' class="absolute top-2 right-2 z-10 bg-black/50 hover:bg-indigo-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition"><i class="fas fa-pencil-alt text-xs"></i></button>{% else %}<div class="absolute top-2 right-2 z-10 bg-black/50 text-xs text-gray-400 px-2 py-1 rounded pointer-events-none">Unlinked</div>{% endif %}<div class="w-full flex justify-center pt-4 pb-2 bg-slate-800/50">{% if char.avatar_url %}<img src="{{ char.avatar_url }}" class="w-[200px] h-[200px] object-cover rounded shadow-md border border-gray-700">{% else %}<div class="w-[200px] h-[200px] flex items-center justify-center font-bold text-white shadow-md rounded border border-gray-700 text-6xl select-none" style="background-color: {{ char.color }};">{{ char.display_name[:1] }}</div>{% endif %}</div><div class="p-4 border-t border-gray-800 bg-gray-900/90"><h3 class="font-bold text-lg text-gray-100 truncate text-center mb-3">{{ char.display_name }}</h3><div class="grid grid-cols-2 gap-2 text-xs text-gray-400 mb-3 bg-slate-950/50 p-2 rounded"><div><span class="block text-[9px] uppercase font-bold text-gray-600">Age</span>{{ char.attributes.get('Age', '-') }}</div><div><span class="block text-[9px] uppercase font-bold text-gray-600">Gender</span>{{ char.attributes.get('Gender', '-') }}</div><div><span class="block text-[9px] uppercase font-bold text-gray-600">Race</span>{{ char.attributes.get('Race', '-') }}</div><div><span class="block text-[9px] uppercase font-bold text-gray-600">Orient.</span>{{ char.attributes.get('Orientation', '-') }}</div></div></div></div>{% endfor %}</aside>
+            <aside class="w-80 hidden md:block shrink-0 sidebar-container space-y-6 z-10">
+                {% for char in characters %}
+                <div class="glass-panel rounded-xl overflow-hidden shadow-lg flex flex-col relative group">
+                    {% if char.id %}<a href="/character/{{ char.id }}" class="absolute top-2 left-2 z-10 bg-black/50 hover:bg-indigo-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition"><i class="fas fa-external-link-alt text-xs"></i></a><button onclick='openEditModal({{ char | tojson }})' class="absolute top-2 right-2 z-10 bg-black/50 hover:bg-indigo-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition"><i class="fas fa-pencil-alt text-xs"></i></button>{% else %}<div class="absolute top-2 right-2 z-10 bg-black/50 text-xs text-gray-400 px-2 py-1 rounded pointer-events-none">Unlinked</div>{% endif %}
+                    <div class="w-full flex justify-center pt-4 pb-2 bg-slate-800/50">{% if char.avatar_url %}<img src="{{ char.avatar_url }}" class="w-[200px] h-[200px] object-cover rounded shadow-md border border-gray-700">{% else %}<div class="w-[200px] h-[200px] flex items-center justify-center font-bold text-white shadow-md rounded border border-gray-700 text-6xl select-none" style="background-color: {{ char.color }};">{{ char.display_name[:1] }}</div>{% endif %}</div>
+                    <div class="p-4 border-t border-gray-800 bg-gray-900/90">
+                        <h3 class="font-bold text-lg text-gray-100 truncate text-center mb-3">{{ char.display_name }}</h3>
+                        <div class="grid grid-cols-2 gap-2 text-xs text-gray-400 mb-3 bg-slate-950/50 p-2 rounded"><div><span class="block text-[9px] uppercase font-bold text-gray-600">Age</span>{{ char.attributes.get('Age', '-') }}</div><div><span class="block text-[9px] uppercase font-bold text-gray-600">Gender</span>{{ char.attributes.get('Gender', '-') }}</div><div><span class="block text-[9px] uppercase font-bold text-gray-600">Race</span>{{ char.attributes.get('Race', '-') }}</div><div><span class="block text-[9px] uppercase font-bold text-gray-600">Orient.</span>{{ char.attributes.get('Orientation', '-') }}</div></div>
+                        {% if char.id %}
+                        <form action="/set_story_player" method="post" class="mt-2 pt-2 border-t border-gray-800">
+                            <input type="hidden" name="filename" value="{{ filename }}">
+                            <input type="hidden" name="char_id" value="{{ char.id }}">
+                            <div class="flex items-center gap-1">
+                                <label class="text-[9px] uppercase font-bold text-gray-600 shrink-0">Played By</label>
+                                <input type="text" name="player_name" value="{{ player_map.get(char.id, '') }}" class="bg-transparent text-xs text-indigo-300 border-b border-gray-700 w-full focus:outline-none focus:border-indigo-500 ml-1" placeholder="Username" onchange="this.form.submit()">
+                            </div>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </aside>
             <div class="flex-1 max-w-4xl h-full overflow-y-auto pr-2 z-10"><div class="glass-panel rounded-xl shadow-2xl p-8 min-h-full"><div class="space-y-6">{% for block in blocks %}{% if block.type == 'ooc' %}<div class="flex justify-center my-4 opacity-75"><div class="bg-gray-800 border border-gray-600 text-gray-400 text-xs px-4 py-1 rounded-full uppercase tracking-wider">(( {{ block.text | safe }} ))</div></div>{% elif block.type == 'dialogue' %}<div class="flex flex-col space-y-1"><span class="text-xs font-bold text-indigo-400 ml-1 drop-shadow-md">{{ block.speaker }}</span>{% set speaker_char = char_map.get(block.speaker) %}{% set bubble_color = speaker_char.bubble_color if speaker_char else '#1f2937' %}<div class="text-gray-100 p-3 rounded-2xl rounded-tl-none inline-block max-w-[85%] self-start shadow-sm leading-relaxed border" style="background-color: {{ bubble_color }}DD; border-color: {{ bubble_color }};"><div class="markdown-content">{% for line in block.lines %}{{ line.content | safe }}{% endfor %}</div></div></div>{% else %}<div class="text-gray-300 leading-relaxed bg-black/40 p-4 rounded-lg border-l-2 border-indigo-500/50 backdrop-blur-sm"><div class="markdown-content">{{ block.text | safe }}</div></div>{% endif %}{% endfor %}</div><div class="mt-20 pt-10 border-t border-gray-800 text-center text-gray-600 text-sm">End of File</div></div></div><div class="w-10 hidden xl:block shrink-0"></div>
             <dialog id="castModal" class="rounded-xl shadow-2xl bg-slate-900 border border-slate-700 text-gray-200 w-[600px] backdrop:bg-black/80"><div class="p-6 border-b border-slate-800 flex justify-between items-center"><h2 class="text-lg font-bold text-indigo-400">Manage Cast</h2><button onclick="document.getElementById('castModal').close()" class="text-gray-500 hover:text-white"><i class="fas fa-times"></i></button></div><div class="p-6 max-h-[70vh] overflow-y-auto"><table class="w-full text-left text-sm"><thead class="text-xs text-gray-500 uppercase border-b border-slate-700"><tr><th class="py-2">Name in Story</th><th class="py-2">Database Character</th></tr></thead><tbody class="divide-y divide-slate-800">{% for char in characters %}<tr><td class="py-3 font-bold text-gray-300">{{ char.raw_name }}</td><td class="py-3"><form action="/link_character" method="POST" class="flex gap-2"><input type="hidden" name="filename" value="{{ filename }}"><input type="hidden" name="raw_name" value="{{ char.raw_name }}"><select name="char_id" class="input-dark text-xs py-1"><option value="">-- Unlinked --</option><option value="NEW">➕ Create New</option>{% for db_id, db_data in all_db_chars.items() %}<option value="{{ db_id }}" {% if char.id == db_id %}selected{% endif %}>{{ db_data.get('name', 'Unknown') }}</option>{% endfor %}</select><button type="submit" class="bg-indigo-900 hover:bg-indigo-700 text-indigo-200 px-2 rounded text-xs">Save</button></form></td></tr>{% endfor %}</tbody></table></div></dialog>
             <dialog id="bgModal" class="rounded-xl bg-slate-900 border border-slate-700 text-gray-200 w-96 backdrop:bg-black/80"><form action="/upload_story_background" method="post" enctype="multipart/form-data" class="p-6"><h2 class="text-lg font-bold text-indigo-400 mb-4">Change Story Background</h2><input type="hidden" name="return_path" value="{{ filename }}"><input type="file" name="file" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-900 file:text-indigo-300 hover:file:bg-indigo-800 cursor-pointer mb-4 bg-slate-950 rounded border border-slate-700 p-1"/><div class="flex justify-end gap-2"><button type="button" onclick="this.closest('dialog').close()" class="text-gray-400 text-sm px-3 py-2">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold">Upload</button></div></form></dialog>
@@ -424,43 +346,28 @@ async def char_profile(char_id: str):
     char['id'] = char_id
     linked_stories = character_manager.get_character_stories(char_id)
     assigned_prompts = prompt_manager.get_prompts_for_character(char_id)
-    return jinja_template.render(mode="char_profile", char=char, char_id=char_id, stories=linked_stories, assigned_prompts=assigned_prompts)
+    played_by_list = character_manager.get_players_for_character(char_id)
+    return jinja_template.render(mode="char_profile", char=char, char_id=char_id, stories=linked_stories, assigned_prompts=assigned_prompts, played_by_list=played_by_list)
 
 @app.get("/read/{path:path}", response_class=HTMLResponse)
 async def read_story(path: str):
     full_path = os.path.join(story_manager.STORY_DIR, path)
     if not os.path.exists(full_path): raise HTTPException(404, "File not found")
-    # Get metadata
     meta = story_manager.get_story_meta(path)
     format_type = meta.get("format_type", "star_rp")
     background_file = meta.get("background_file")
-    
-    # Parse with format
     blocks, local_stats = story_parser.parse_file(full_path, format_type=format_type)
-    
     characters = character_manager.get_cast_for_story(path, local_stats)
     all_db_chars = character_manager.get_all_characters()
     char_map = {c['raw_name']: c for c in characters}
-    
-    return jinja_template.render(
-        mode="read", 
-        blocks=blocks, 
-        characters=characters, 
-        all_db_chars=all_db_chars, 
-        filename=path, 
-        char_map=char_map, 
-        background_file=background_file
-    )
+    player_map = character_manager.get_story_player_map(path)
+    return jinja_template.render(mode="read", blocks=blocks, characters=characters, all_db_chars=all_db_chars, filename=path, char_map=char_map, background_file=background_file, player_map=player_map)
 
 # NEW: Route to Load Edit Interface
 @app.get("/edit_story/{path:path}", response_class=HTMLResponse)
 async def edit_story_view(path: str):
     content = story_manager.read_raw_story(path)
-    return jinja_template.render(
-        mode="edit_story",
-        filename=path,
-        content=content
-    )
+    return jinja_template.render(mode="edit_story", filename=path, content=content)
 
 # NEW: Route to Save Edit
 @app.post("/save_story_text")
@@ -572,6 +479,11 @@ async def create_prompt(title: str = Form(...), content: str = Form(...), tags: 
 async def delete_prompt(pid: str = Form(...)):
     prompt_manager.delete_prompt(pid)
     return RedirectResponse(url="/prompts", status_code=303)
+
+@app.post("/set_story_player")
+async def set_story_player(filename: str = Form(...), char_id: str = Form(...), player_name: str = Form("")):
+    character_manager.update_story_player_map(filename, char_id, player_name)
+    return RedirectResponse(url=f"/read/{filename}", status_code=303)
 
 if __name__ == "__main__":
     import uvicorn
