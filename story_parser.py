@@ -27,6 +27,31 @@ def render_novel(text):
         safe_text
     )
 
+def extract_speaker(line):
+    """
+    Attempts to identify a speaker in a line.
+    Handles formats:
+    - User: Hello
+    - [User]: Hello
+    - [User -> Other]: Hello
+    - [User → Other]: Hello
+    """
+    # Pattern explanation:
+    # ^\[?          : Optional starting bracket
+    # ([^:\]→>]+)   : Capture Group 1 (The Name). Captures anything NOT a colon, bracket, or arrow.
+    # (?:.*?)       : Non-capturing group for " -> Target" (we ignore the target for now)
+    # \]?           : Optional closing bracket
+    # :\s* : The colon separator and whitespace
+    # (.*)          : Capture Group 2 (The Message)
+    
+    match = re.match(r"^\[?([^:\]→>]+)(?:[→>].*?)?\]?:\s*(.*)", line)
+    
+    if match:
+        name = match.group(1).strip()
+        content = match.group(2)
+        return name, content
+    return None, None
+
 def get_file_stats(filepath):
     stats = {}
     msg_count = 0
@@ -39,12 +64,13 @@ def get_file_stats(filepath):
             for line in f:
                 line = line.strip()
                 if not line: continue
-                match = re.match(r"^([A-Za-z0-9_ -]+):\s*(.*)", line)
-                if match:
-                    name = match.group(1)
+                
+                name, _ = extract_speaker(line)
+                if name:
                     if name not in stats: stats[name] = 0
                     stats[name] += 1
                     msg_count += 1
+                    
         top_chars = sorted(stats.keys(), key=lambda n: stats[n], reverse=True)[:3]
         return {"msg_count": msg_count, "top_characters": top_chars, "date": date_str}
     except:
@@ -69,14 +95,11 @@ def parse_file(filepath, format_type="star_rp"):
                     blocks.append({"type": "ooc", "text": html.escape(raw_line.strip("() "))})
                     continue
 
-                # 2. Check for Speaker
-                speaker_match = re.match(r"^([A-Za-z0-9_ -]+):\s*(.*)", raw_line)
+                # 2. Check for Speaker using new logic
+                name, content = extract_speaker(raw_line)
                 
-                if speaker_match:
+                if name:
                     if current_block: blocks.append(current_block)
-                    
-                    name = speaker_match.group(1)
-                    content = speaker_match.group(2)
 
                     if name not in stats: stats[name] = 0
                     stats[name] += 1
