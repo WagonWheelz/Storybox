@@ -36,9 +36,6 @@ def sanitize_data(data):
         if "attributes" not in val: val["attributes"] = {}; dirty = True
         if "gallery" not in val: val["gallery"] = []; dirty = True
         if "bubble_color" not in val: val["bubble_color"] = "#1e293b"; dirty = True
-        
-        # NEW: Ensure sections list exists
-        if "sections" not in val: val["sections"] = []; dirty = True
             
         cleaned_data[key] = val
         
@@ -89,7 +86,7 @@ def create_character(name):
     db[char_id] = {
         "name": name, "description": "",
         "attributes": {"Age": "Unknown", "Gender": "Unknown", "Race": "Unknown", "Orientation": "Unknown"},
-        "avatar_file": None, "gallery": [], "bubble_color": "#1e293b", "sections": []
+        "avatar_file": None, "gallery": [], "bubble_color": "#1e293b"
     }
     save_json(CHAR_DB_FILE, db)
     return char_id
@@ -101,16 +98,13 @@ def get_character(char_id):
 def get_all_characters():
     return load_json(CHAR_DB_FILE)
 
-# NEW: Added sections parameter
-def update_character_data(char_id, name, description, attributes, bubble_color, avatar_filename=None, sections=None):
+def update_character_data(char_id, name, description, attributes, bubble_color, avatar_filename=None):
     db = load_json(CHAR_DB_FILE)
     if char_id in db:
         db[char_id]["name"] = name
         db[char_id]["description"] = description
         db[char_id]["attributes"] = attributes
         db[char_id]["bubble_color"] = bubble_color
-        if sections is not None:
-            db[char_id]["sections"] = sections
         if avatar_filename: db[char_id]["avatar_file"] = avatar_filename
         save_json(CHAR_DB_FILE, db)
 
@@ -121,7 +115,7 @@ def delete_character(char_id):
         save_json(CHAR_DB_FILE, db)
 
 # ---------------------------------------------------------
-# IMAGES & EXPORT (Unchanged logic, just keeping imports safe)
+# IMAGES & EXPORT
 # ---------------------------------------------------------
 def get_avatar_color(name):
     if not name: return "#333"
@@ -162,7 +156,6 @@ def export_character_card(char_id):
         desc = char_data.get('description') or ""
         attrs = char_data.get('attributes') or {}
         bubble_color = char_data.get('bubble_color', '#1e293b')
-        sections = char_data.get('sections', [])
         
         attr_text = "\n".join([f"{k}: {v}" for k, v in attrs.items()])
         full_desc = f"{desc}\n\n[Attributes]\n{attr_text}"
@@ -171,7 +164,7 @@ def export_character_card(char_id):
             "spec": "chara_card_v2", "spec_version": "2.0",
             "data": {
                 "name": name, "description": full_desc, "creator_notes": "Exported from StoryStash",
-                "extensions": {"storystash": {"raw_attributes": attrs, "raw_description": desc, "bubble_color": bubble_color, "sections": sections}}
+                "extensions": {"storystash": {"raw_attributes": attrs, "raw_description": desc, "bubble_color": bubble_color}}
             }
         }
         json_str = json.dumps(card_data)
@@ -198,23 +191,23 @@ def import_character_card(file_bytes):
         new_id = str(uuid.uuid4())
         name = data_block.get("name", "Imported Character")
         extensions = data_block.get("extensions", {})
-        sections = []
+        
+        desc = data_block.get("description", "")
+        attrs = {"Age": "Unknown"}
+        bubble_color = "#1e293b"
+
         if "storystash" in extensions:
-            desc = extensions["storystash"].get("raw_description", "")
-            attrs = extensions["storystash"].get("raw_attributes", {})
-            bubble_color = extensions["storystash"].get("bubble_color", "#1e293b")
-            sections = extensions["storystash"].get("sections", [])
-        else:
-            desc = data_block.get("description", "")
-            attrs = {"Age": "Unknown"}
-            bubble_color = "#1e293b"
+            desc = extensions["storystash"].get("raw_description", desc)
+            attrs = extensions["storystash"].get("raw_attributes", attrs)
+            bubble_color = extensions["storystash"].get("bubble_color", bubble_color)
+            
         avatar_filename = f"{new_id}_avatar.png"
         img.save(os.path.join(AVATAR_DIR, avatar_filename), format="PNG")
         db = load_json(CHAR_DB_FILE)
         db[new_id] = {
             "name": name, "description": desc, "attributes": attrs,
-            "avatar_file": avatar_filename, "gallery": [], "bubble_color": bubble_color,
-            "sections": sections
+            "avatar_file": avatar_filename, "gallery": [], 
+            "bubble_color": bubble_color
         }
         save_json(CHAR_DB_FILE, db)
         return new_id
