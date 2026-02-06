@@ -11,7 +11,7 @@ import character_manager
 import story_parser
 import story_manager
 import prompt_manager
-import lore_manager  # NEW IMPORT
+import lore_manager
 from templates import HTML_TEMPLATE_STRING
 
 app = FastAPI()
@@ -22,12 +22,12 @@ os.makedirs(story_manager.STORY_DIR, exist_ok=True)
 os.makedirs(character_manager.AVATAR_DIR, exist_ok=True)
 os.makedirs(character_manager.GALLERY_DIR, exist_ok=True)
 os.makedirs(story_manager.BACKGROUND_DIR, exist_ok=True)
-os.makedirs(lore_manager.LORE_IMG_DIR, exist_ok=True) # NEW
+os.makedirs(lore_manager.LORE_IMG_DIR, exist_ok=True)
 
 app.mount("/avatars", StaticFiles(directory=character_manager.AVATAR_DIR), name="avatars")
 app.mount("/gallery", StaticFiles(directory=character_manager.GALLERY_DIR), name="gallery")
 app.mount("/backgrounds", StaticFiles(directory=story_manager.BACKGROUND_DIR), name="backgrounds")
-app.mount("/lore_images", StaticFiles(directory=lore_manager.LORE_IMG_DIR), name="lore_images") # NEW
+app.mount("/lore_images", StaticFiles(directory=lore_manager.LORE_IMG_DIR), name="lore_images")
 
 jinja_template = Template(HTML_TEMPLATE_STRING)
 
@@ -40,7 +40,7 @@ async def dashboard(request: Request):
     total_stories = story_manager.get_total_story_count()
     all_chars = character_manager.get_all_characters()
     all_prompts = prompt_manager.get_all_prompts()
-    all_lore = lore_manager.get_all_lore() # NEW
+    all_lore = lore_manager.get_all_lore()
     campaigns = story_manager.get_campaigns()
     recent_files = story_manager.get_recent_stories(limit=5)
     recent_data = []
@@ -56,7 +56,7 @@ async def dashboard(request: Request):
         "total_chars": len(all_chars),
         "total_campaigns": len(campaigns) - 1,
         "total_prompts": len(all_prompts),
-        "total_lore": len(all_lore) # NEW
+        "total_lore": len(all_lore)
     }
     return jinja_template.render(mode="dashboard", stats=stats, recent_stories=recent_data, campaigns=campaigns)
 
@@ -79,7 +79,12 @@ async def stories_list(request: Request):
             "meta": story_manager.get_story_meta(rel_path), 
             "stats": story_parser.get_file_stats(full_path)
         })
-    return jinja_template.render(mode="stories_list", campaigns=story_manager.get_campaigns(), active_campaign=active_campaign, stories=stories_data)
+    return jinja_template.render(
+        mode="stories_list", 
+        campaigns=story_manager.get_campaigns(), 
+        active_campaign=active_campaign, 
+        stories=stories_data
+    )
 
 @app.get("/prompts", response_class=HTMLResponse)
 async def prompts_list(request: Request):
@@ -87,11 +92,30 @@ async def prompts_list(request: Request):
     all_chars = character_manager.get_all_characters()
     return jinja_template.render(mode="prompts_list", prompts=prompts, all_chars=all_chars)
 
-# NEW: LORE ROUTES
+# --- LORE ROUTES ---
 @app.get("/lore", response_class=HTMLResponse)
 async def lore_list(request: Request):
-    lore_items = lore_manager.get_all_lore()
-    return jinja_template.render(mode="lore_list", lore_items=lore_items)
+    active_type = request.query_params.get("type", None)
+    all_lore = lore_manager.get_all_lore()
+    
+    # Get unique types for sidebar
+    all_types = sorted(list(set(item['type'] for item in all_lore.values())))
+    
+    # Filter content
+    filtered_lore = {}
+    if active_type:
+        for lid, item in all_lore.items():
+            if item['type'] == active_type:
+                filtered_lore[lid] = item
+    else:
+        filtered_lore = all_lore
+
+    return jinja_template.render(
+        mode="lore_list", 
+        lore_items=filtered_lore, 
+        all_types=all_types, 
+        active_type=active_type
+    )
 
 @app.get("/lore/{lid}", response_class=HTMLResponse)
 async def lore_detail(lid: str):
@@ -101,9 +125,11 @@ async def lore_detail(lid: str):
     return jinja_template.render(mode="lore_detail", item=item)
 
 @app.post("/create_lore")
-async def create_lore(title: str = Form(...), type_category: str = Form(...), content: str = Form(...), tags: str = Form("")):
+async def create_lore(title: str = Form(...), type_category: str = Form(...), content: str = Form(...), tags: str = Form(""), image: Optional[UploadFile] = File(None)):
     tag_list = tags.split(",")
-    lore_manager.create_lore(title, content, type_category, tag_list)
+    lid = lore_manager.create_lore(title, content, type_category, tag_list)
+    if image and image.filename:
+        lore_manager.update_lore(lid, title, content, type_category, tag_list, lore_manager.save_lore_image(lid, image.file, image.filename))
     return RedirectResponse(url="/lore", status_code=303)
 
 @app.post("/update_lore")
@@ -206,8 +232,7 @@ async def update_character_details(
     char_id: str = Form(...), name: str = Form(...), description: str = Form(""),
     return_file: str = Form(None), bubble_color: str = Form("#1e293b"),
     avatar: Optional[UploadFile] = File(None),
-    attr_keys: List[str] = Form([]), attr_values: List[str] = Form([]),
-    sections_json: str = Form(None)
+    attr_keys: List[str] = Form([]), attr_values: List[str] = Form([])
 ):
     avatar_filename = None
     if avatar and avatar.filename: 
@@ -216,19 +241,8 @@ async def update_character_details(
     attributes = {}
     for k, v in zip(attr_keys, attr_values):
         if k.strip() and v.strip(): attributes[k.strip()] = v.strip()
-    
-    sections_data = None
-    if sections_json:
-        try:
-            sections_data = json.loads(sections_json)
-        except json.JSONDecodeError:
-            print("Error parsing sections JSON, skipping sections update")
-            sections_data = None
 
-    character_manager.update_character_data(
-        char_id, name, description, attributes, bubble_color, 
-        avatar_filename, sections=sections_data
-    )
+    character_manager.update_character_data(char_id, name, description, attributes, bubble_color, avatar_filename)
     
     if return_file: return RedirectResponse(url=f"/read/{return_file}", status_code=303)
     else: return RedirectResponse(url=f"/character/{char_id}", status_code=303)
