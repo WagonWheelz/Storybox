@@ -40,7 +40,7 @@ HTML_TEMPLATE_STRING = """
 
     <header class="bg-slate-900 border-b border-slate-800 p-4 shadow-lg flex justify-between items-center z-10 shrink-0 relative">
         <div class="flex items-center gap-6">
-            <h1 class="text-xl font-bold text-indigo-400">StoryStash <span class="text-xs text-gray-500">v7.0</span></h1>
+            <h1 class="text-xl font-bold text-indigo-400">StoryStash <span class="text-xs text-gray-500">v7.1</span></h1>
             <nav class="flex gap-4 text-sm font-medium">
                 <a href="/" class="{{ 'text-white font-bold' if mode == 'dashboard' else 'text-gray-400 hover:text-white' }}">Dashboard</a>
                 <a href="/stories" class="{{ 'text-white font-bold' if mode == 'stories_list' else 'text-gray-400 hover:text-white' }}">Stories</a>
@@ -65,8 +65,6 @@ HTML_TEMPLATE_STRING = """
         </div>
         {% elif mode == 'prompts_list' %}
         <button onclick="document.getElementById('createPromptModal').showModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded text-sm font-bold shadow-lg shadow-indigo-500/20"><i class="fas fa-plus mr-2"></i> New Prompt</button>
-        {% elif mode == 'lore_list' %}
-        <button onclick="document.getElementById('createLoreModal').showModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded text-sm font-bold shadow-lg shadow-emerald-500/20"><i class="fas fa-plus mr-2"></i> New Object</button>
         {% endif %}
     </header>
 
@@ -82,37 +80,65 @@ HTML_TEMPLATE_STRING = """
                     <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-lg flex items-center gap-4"><div class="w-12 h-12 rounded-full bg-emerald-900/50 text-emerald-400 flex items-center justify-center text-xl"><i class="fas fa-globe"></i></div><div><div class="text-2xl font-bold text-white">{{ stats.total_lore }}</div><div class="text-xs uppercase text-gray-500 font-bold tracking-wider">Lore Objects</div></div></div>
                     <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-lg flex items-center gap-4"><div class="w-12 h-12 rounded-full bg-amber-900/50 text-amber-400 flex items-center justify-center text-xl"><i class="fas fa-lightbulb"></i></div><div><div class="text-2xl font-bold text-white">{{ stats.total_prompts }}</div><div class="text-xs uppercase text-gray-500 font-bold tracking-wider">Prompts</div></div></div>
                 </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold text-white">Recent Updates</h3><a href="/stories" class="text-xs text-indigo-400 hover:text-indigo-300">View All</a></div>
+                        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                            {% for story in recent_stories %}
+                            <a href="/read/{{ story.path }}" class="flex items-center justify-between p-4 border-b border-slate-800 hover:bg-slate-800/50 transition last:border-0"><div class="flex items-center gap-4"><div class="w-8 h-8 rounded bg-slate-800 flex items-center justify-center text-gray-500"><i class="fas fa-file-alt"></i></div><div><div class="font-bold text-gray-200">{{ story.meta.display_title }}</div><div class="flex gap-2"><div class="text-yellow-500 text-xs flex">{% for i in range(story.meta.rating) %}<i class="fas fa-star"></i>{% endfor %}</div><div class="text-xs text-gray-500">{{ story.path }}</div></div></div></div><div class="text-xs text-gray-500">{{ story.stats.date }}</div></a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-4">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <button onclick="document.getElementById('importStoryModal').showModal()" class="w-full text-left p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-indigo-500 transition flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-green-900/30 text-green-400 flex items-center justify-center"><i class="fas fa-plus"></i></div><div><div class="font-bold text-gray-200">Import Story</div><div class="text-xs text-gray-500">Upload .txt or Paste</div></div></button>
+                            <form action="/create_character_quick" method="post" class="block w-full"><div class="p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-purple-500 transition flex flex-col gap-2"><div class="flex items-center gap-3 text-purple-400 font-bold"><i class="fas fa-user-plus"></i> New Character</div><div class="flex gap-2"><input type="text" name="name" placeholder="Name" class="input-dark py-1 text-sm" required><button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white px-3 rounded text-sm font-bold">Go</button></div></div></form>
+                            <button onclick="document.getElementById('createLoreModal').showModal()" class="w-full text-left p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-emerald-500 transition flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-emerald-900/30 text-emerald-400 flex items-center justify-center"><i class="fas fa-globe"></i></div><div><div class="font-bold text-gray-200">Create Lore</div><div class="text-xs text-gray-500">Item, Location, Note...</div></div></button>
+                        </div>
+                    </div>
                 </div>
+            </div>
             {{ modals | safe }}
 
         {% elif mode == 'lore_list' %}
-            <div class="flex-1 max-w-6xl h-full overflow-y-auto z-10">
-                <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-white">World Lore</h2></div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <aside class="w-64 shrink-0 bg-slate-900/50 rounded-xl border border-slate-800 p-4 h-full overflow-y-auto z-10">
+                <div class="flex justify-between items-center mb-4"><h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Categories</h2><button onclick="document.getElementById('createLoreModal').showModal()" class="text-xs text-emerald-400 hover:text-emerald-300"><i class="fas fa-plus"></i></button></div>
+                <nav class="space-y-1">
+                    <a href="/lore" class="block px-3 py-2 rounded text-sm {{ 'bg-emerald-900/50 text-emerald-200' if not active_type else 'text-gray-400 hover:bg-slate-800 hover:text-white' }}"><i class="fas fa-layer-group w-5"></i> All Objects</a>
+                    {% for type in all_types %}
+                    <a href="/lore?type={{ type }}" class="block px-3 py-2 rounded text-sm {{ 'bg-emerald-900/50 text-emerald-200' if active_type == type else 'text-gray-400 hover:bg-slate-800 hover:text-white' }}"><i class="fas fa-tag w-5 text-gray-500"></i> {{ type }}</a>
+                    {% endfor %}
+                </nav>
+                <div class="mt-6 border-t border-slate-800 pt-4"><button onclick="document.getElementById('createLoreModal').showModal()" class="block w-full text-left px-3 py-2 rounded text-sm text-gray-400 hover:bg-slate-800 hover:text-white transition"><i class="fas fa-plus w-5 text-emerald-500"></i> Create New</button></div>
+            </aside>
+            <div class="flex-1 h-full overflow-y-auto pr-2 z-10">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {% for lid, item in lore_items.items() %}
-                    <a href="/lore/{{ lid }}" class="block bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hover:border-emerald-500 transition group h-64 flex flex-col">
-                        <div class="h-32 bg-slate-800 w-full relative">
-                            {% if item.image %}
-                            <img src="/lore_images/{{ item.image }}" class="w-full h-full object-cover">
-                            {% else %}
-                            <div class="w-full h-full flex items-center justify-center text-4xl text-white/10"><i class="fas fa-book-open"></i></div>
-                            {% endif %}
-                            <div class="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded uppercase font-bold backdrop-blur-sm border border-white/10">{{ item.type }}</div>
-                        </div>
-                        <div class="p-4 flex-1 flex flex-col">
-                            <h3 class="font-bold text-gray-200 mb-1 truncate">{{ item.title }}</h3>
-                            <div class="text-xs text-gray-500 mb-2 line-clamp-2 italic">{{ item.content }}</div>
-                            <div class="mt-auto flex flex-wrap gap-1">
-                                {% for tag in item.tags[:3] %}<span class="tag tag-emerald">{{ tag }}</span>{% endfor %}
+                    <div class="bg-slate-900 rounded-xl border border-slate-800 shadow-lg hover:border-emerald-500/50 transition flex flex-col h-[280px] group relative">
+                        <form action="/delete_lore" method="post" onsubmit="return confirm('Delete?');" class="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition"><input type="hidden" name="lid" value="{{ lid }}"><button class="text-gray-900 bg-white/50 hover:bg-red-500 hover:text-white rounded-full p-1 w-6 h-6 flex items-center justify-center"><i class="fas fa-trash text-xs"></i></button></form>
+                        <a href="/lore/{{ lid }}" class="flex-1 flex flex-col p-5">
+                            <div class="mb-3">
+                                <h3 class="font-bold text-lg text-gray-100 leading-tight line-clamp-1" title="{{ item.title }}">{{ item.title }}</h3>
+                                <div class="text-[10px] text-gray-500 mt-1 flex gap-2"><span><i class="far fa-clock"></i> {{ item.created_at }}</span><span class="text-emerald-500 font-bold uppercase">{{ item.type }}</span></div>
                             </div>
+                            {% if item.image %}
+                            <div class="w-full h-24 bg-slate-950 rounded mb-2 overflow-hidden border border-slate-800"><img src="/lore_images/{{ item.image }}" class="w-full h-full object-cover opacity-75 group-hover:opacity-100 transition"></div>
+                            {% else %}
+                            <div class="w-full h-24 bg-slate-950 rounded mb-2 flex items-center justify-center text-emerald-900/30"><i class="fas fa-globe text-4xl"></i></div>
+                            {% endif %}
+                            <div class="flex-1 text-xs text-gray-400 italic line-clamp-2 leading-relaxed overflow-hidden">{{ item.content }}</div>
+                        </a>
+                        <div class="p-3 border-t border-slate-800 bg-slate-950/30 rounded-b-xl flex gap-2 overflow-x-auto">
+                            {% if item.tags %}{% for tag in item.tags %}<span class="tag tag-emerald">{{ tag }}</span>{% endfor %}{% else %}<span class="tag tag-gray">No Tags</span>{% endif %}
                         </div>
-                    </a>
+                    </div>
                     {% endfor %}
                 </div>
             </div>
             
             <dialog id="createLoreModal" class="rounded-xl bg-slate-900 border border-slate-700 text-gray-200 w-[600px] backdrop:bg-black/80">
-                <form action="/create_lore" method="post" class="flex flex-col h-[80vh]">
+                <form action="/create_lore" method="post" enctype="multipart/form-data" class="flex flex-col h-[80vh]">
                     <div class="p-6 border-b border-slate-800"><h2 class="text-lg font-bold text-emerald-400">Create Lore Object</h2></div>
                     <div class="p-6 overflow-y-auto space-y-4 flex-1">
                         <div class="grid grid-cols-2 gap-4">
@@ -130,6 +156,7 @@ HTML_TEMPLATE_STRING = """
                                 </select>
                             </div>
                         </div>
+                        <div><label class="text-xs font-bold text-gray-500 uppercase">Image</label><input type="file" name="image" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-900 file:text-indigo-300 hover:file:bg-indigo-800 cursor-pointer mt-2 bg-slate-950 rounded border border-slate-700 p-1"/></div>
                         <div><label class="text-xs font-bold text-gray-500 uppercase">Content</label><textarea name="content" rows="10" class="input-dark mt-1 font-serif text-sm" required></textarea></div>
                         <div><label class="text-xs font-bold text-gray-500 uppercase">Tags</label><input type="text" name="tags" class="input-dark mt-1" placeholder="e.g. Magic, Rare, Ancient"></div>
                     </div>
@@ -309,75 +336,40 @@ HTML_TEMPLATE_STRING = """
     <dialog id="campaignModal" class="rounded-xl bg-slate-900 border border-slate-700 text-gray-200 w-96 backdrop:bg-black/80"><form action="/create_campaign" method="post" class="p-6"><h2 class="text-lg font-bold text-indigo-400 mb-4">New Campaign</h2><input type="text" name="name" placeholder="Name" class="input-dark mb-4" required><div class="flex justify-end gap-2"><button type="button" onclick="this.closest('dialog').close()" class="text-gray-400 text-sm px-3 py-2">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold">Create</button></div></form></dialog>
     <dialog id="storyMetaModal" class="rounded-xl bg-slate-900 border border-slate-700 text-gray-200 w-[500px] backdrop:bg-black/80"><form action="/update_story_meta" method="post" class="flex flex-col h-full"><div class="p-6 border-b border-slate-800"><h2 class="text-lg font-bold text-indigo-400">Edit Details</h2><input type="hidden" name="current_path" id="metaPathInput"></div><div class="p-6 space-y-4"><div><label class="text-xs font-bold text-gray-500 uppercase">Display Title</label><input type="text" name="title" id="metaTitleInput" class="input-dark mt-1"></div><div><label class="text-xs font-bold text-gray-500 uppercase">Rating</label><select name="rating" id="metaRatingInput" class="input-dark mt-1"><option value="0">Unrated</option><option value="1">1 Star</option><option value="2">2 Stars</option><option value="3">3 Stars</option><option value="4">4 Stars</option><option value="5">5 Stars</option></select></div><div><label class="text-xs font-bold text-gray-500 uppercase">Format</label><select name="format_type" id="metaFormatInput" class="input-dark mt-1"><option value="star_rp">Star RP (*action*)</option><option value="markdown">Markdown (**bold**)</option><option value="novel">Novel Style ("quote")</option></select></div><div><label class="text-xs font-bold text-gray-500 uppercase">Synopsis</label><textarea name="synopsis" id="metaSynopsisInput" rows="3" class="input-dark mt-1"></textarea></div><div><label class="text-xs font-bold text-gray-500 uppercase">Tags</label><input type="text" name="tags" id="metaTagsInput" class="input-dark mt-1"></div><div><label class="text-xs font-bold text-gray-500 uppercase">Campaign</label><select name="campaign" id="metaCampaignInput" class="input-dark mt-1">{% for camp in campaigns %}<option value="{{ camp }}">{{ camp }}</option>{% endfor %}</select></div></div><div class="p-4 border-t border-slate-800 flex justify-end gap-2 bg-slate-900"><button type="button" onclick="this.closest('dialog').close()" class="text-gray-400 text-sm px-3 py-2">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold">Save</button></div></form></dialog>
     
-    <dialog id="editModal" class="rounded-xl shadow-2xl bg-slate-900 border border-slate-700 text-gray-200 w-[500px] backdrop:bg-black/80 max-h-[90vh]">
-        <form action="/update_character_details" method="post" enctype="multipart/form-data" class="flex flex-col h-full">
-            <div class="p-6 border-b border-slate-800 bg-slate-900 sticky top-0 z-10">
-                <h2 class="text-lg font-bold text-indigo-400">Edit <span id="modalCharNameDisplay"></span></h2>
-                <input type="hidden" id="modalCharIdInput" name="char_id" value="">
-                <input type="hidden" name="return_file" value="{{ filename | default('') }}">
-            </div>
-            
-            <div class="p-6 overflow-y-auto space-y-4">
-                <div class="flex gap-4">
-                    <div class="flex-1">
-                        <label class="text-xs text-gray-500 uppercase font-bold">Display Name</label>
-                        <input type="text" id="modalNameInput" name="name" class="input-dark mt-1">
-                    </div>
-                    
-                    <div>
-                        <label class="text-xs text-gray-500 uppercase font-bold">Chat Color</label>
-                        <input type="hidden" id="modalBubbleColor" name="bubble_color">
-                        <div class="color-grid mt-1" id="colorPaletteContainer">
-                            <button type="button" onclick="selectColor('#1e293b')" class="color-btn bg-[#1e293b]"></button>
-                            <button type="button" onclick="selectColor('#374151')" class="color-btn bg-[#374151]"></button>
-                            <button type="button" onclick="selectColor('#7f1d1d')" class="color-btn bg-[#7f1d1d]"></button>
-                            <button type="button" onclick="selectColor('#991b1b')" class="color-btn bg-[#991b1b]"></button>
-                            <button type="button" onclick="selectColor('#9a3412')" class="color-btn bg-[#9a3412]"></button>
-                            <button type="button" onclick="selectColor('#854d0e')" class="color-btn bg-[#854d0e]"></button>
-                            <button type="button" onclick="selectColor('#3f6212')" class="color-btn bg-[#3f6212]"></button>
-                            <button type="button" onclick="selectColor('#166534')" class="color-btn bg-[#166534]"></button>
-                            <button type="button" onclick="selectColor('#065f46')" class="color-btn bg-[#065f46]"></button>
-                            <button type="button" onclick="selectColor('#115e59')" class="color-btn bg-[#115e59]"></button>
-                            <button type="button" onclick="selectColor('#155e75')" class="color-btn bg-[#155e75]"></button>
-                            <button type="button" onclick="selectColor('#075985')" class="color-btn bg-[#075985]"></button>
-                            <button type="button" onclick="selectColor('#1e40af')" class="color-btn bg-[#1e40af]"></button>
-                            <button type="button" onclick="selectColor('#1e3a8a')" class="color-btn bg-[#1e3a8a]"></button>
-                            <button type="button" onclick="selectColor('#3730a3')" class="color-btn bg-[#3730a3]"></button>
-                            <button type="button" onclick="selectColor('#5b21b6')" class="color-btn bg-[#5b21b6]"></button>
-                            <button type="button" onclick="selectColor('#6b21a8')" class="color-btn bg-[#6b21a8]"></button>
-                            <button type="button" onclick="selectColor('#86198f')" class="color-btn bg-[#86198f]"></button>
-                            <button type="button" onclick="selectColor('#9d174d')" class="color-btn bg-[#9d174d]"></button>
-                            <button type="button" onclick="selectColor('#9f1239')" class="color-btn bg-[#9f1239]"></button>
-                            <button type="button" onclick="selectColor('#881337')" class="color-btn bg-[#881337]"></button>
-                            <button type="button" onclick="selectColor('#4c0519')" class="color-btn bg-[#4c0519]"></button>
-                            <button type="button" onclick="selectColor('#000000')" class="color-btn bg-[#000000]"></button>
-                            <button type="button" onclick="selectColor('#ffffff')" class="color-btn bg-[#ffffff]"></button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div><label class="text-xs text-gray-500 uppercase font-bold">Avatar</label><input type="file" name="avatar" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-900 file:text-indigo-300 hover:file:bg-indigo-800 cursor-pointer mt-2 bg-slate-950 rounded border border-slate-700 p-1"/></div>
-                <div><label class="text-xs text-gray-500 uppercase font-bold">Bio</label><textarea name="description" id="modalDescription" rows="3" class="input-dark mt-1"></textarea></div>
-                <div class="p-3 bg-slate-950 rounded border border-slate-800">
-                    <label class="text-xs text-gray-500 uppercase font-bold block mb-2">Core Stats</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="text" name="attr_keys" value="Age" class="hidden"><input type="text" id="modalAge" name="attr_values" placeholder="Age" class="input-dark text-xs">
-                        <input type="text" name="attr_keys" value="Gender" class="hidden"><input type="text" id="modalGender" name="attr_values" placeholder="Gender" class="input-dark text-xs">
-                        <input type="text" name="attr_keys" value="Race" class="hidden"><input type="text" id="modalRace" name="attr_values" placeholder="Race" class="input-dark text-xs">
-                        <input type="text" name="attr_keys" value="Orientation" class="hidden"><input type="text" id="modalOrient" name="attr_values" placeholder="Orientation" class="input-dark text-xs">
-                    </div>
-                </div>
-                <div>
-                    <div class="flex justify-between items-center mb-2"><label class="text-xs text-gray-500 uppercase font-bold">Extra Attributes</label><button type="button" onclick="addAttrRow()" class="text-xs bg-indigo-900 text-indigo-300 px-2 py-1 rounded hover:bg-indigo-800 transition"><i class="fas fa-plus mr-1"></i> Add</button></div>
-                    <div id="attributesContainer" class="space-y-2"></div>
-                </div>
-            </div>
-            <div class="p-4 border-t border-slate-800 flex justify-end gap-2 bg-slate-900 sticky bottom-0">
-                <button type="button" onclick="document.getElementById('editModal').close()" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition">Cancel</button>
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-sm font-bold">Save Changes</button>
-            </div>
-        </form>
-    </dialog>
+    <dialog id="editModal" class="rounded-xl shadow-2xl bg-slate-900 border border-slate-700 text-gray-200 w-[500px] backdrop:bg-black/80 max-h-[90vh]"><form action="/update_character_details" method="post" enctype="multipart/form-data" class="flex flex-col h-full"><div class="p-6 border-b border-slate-800 bg-slate-900 sticky top-0 z-10"><h2 class="text-lg font-bold text-indigo-400">Edit <span id="modalCharNameDisplay"></span></h2><input type="hidden" id="modalCharIdInput" name="char_id" value=""><input type="hidden" name="return_file" value="{{ filename | default('') }}"></div><div class="p-6 overflow-y-auto space-y-4"><div class="flex gap-4"><div class="flex-1"><label class="text-xs text-gray-500 uppercase font-bold">Display Name</label><input type="text" id="modalNameInput" name="name" class="input-dark mt-1"></div>
+    
+    <div>
+        <label class="text-xs text-gray-500 uppercase font-bold">Chat Color</label>
+        <input type="hidden" id="modalBubbleColor" name="bubble_color">
+        <div class="color-grid mt-1" id="colorPaletteContainer">
+            <button type="button" onclick="selectColor('#1e293b')" class="color-btn bg-[#1e293b]"></button>
+            <button type="button" onclick="selectColor('#374151')" class="color-btn bg-[#374151]"></button>
+            <button type="button" onclick="selectColor('#7f1d1d')" class="color-btn bg-[#7f1d1d]"></button>
+            <button type="button" onclick="selectColor('#991b1b')" class="color-btn bg-[#991b1b]"></button>
+            <button type="button" onclick="selectColor('#9a3412')" class="color-btn bg-[#9a3412]"></button>
+            <button type="button" onclick="selectColor('#854d0e')" class="color-btn bg-[#854d0e]"></button>
+            <button type="button" onclick="selectColor('#3f6212')" class="color-btn bg-[#3f6212]"></button>
+            <button type="button" onclick="selectColor('#166534')" class="color-btn bg-[#166534]"></button>
+            <button type="button" onclick="selectColor('#065f46')" class="color-btn bg-[#065f46]"></button>
+            <button type="button" onclick="selectColor('#115e59')" class="color-btn bg-[#115e59]"></button>
+            <button type="button" onclick="selectColor('#155e75')" class="color-btn bg-[#155e75]"></button>
+            <button type="button" onclick="selectColor('#075985')" class="color-btn bg-[#075985]"></button>
+            <button type="button" onclick="selectColor('#1e40af')" class="color-btn bg-[#1e40af]"></button>
+            <button type="button" onclick="selectColor('#1e3a8a')" class="color-btn bg-[#1e3a8a]"></button>
+            <button type="button" onclick="selectColor('#3730a3')" class="color-btn bg-[#3730a3]"></button>
+            <button type="button" onclick="selectColor('#5b21b6')" class="color-btn bg-[#5b21b6]"></button>
+            <button type="button" onclick="selectColor('#6b21a8')" class="color-btn bg-[#6b21a8]"></button>
+            <button type="button" onclick="selectColor('#86198f')" class="color-btn bg-[#86198f]"></button>
+            <button type="button" onclick="selectColor('#9d174d')" class="color-btn bg-[#9d174d]"></button>
+            <button type="button" onclick="selectColor('#9f1239')" class="color-btn bg-[#9f1239]"></button>
+            <button type="button" onclick="selectColor('#881337')" class="color-btn bg-[#881337]"></button>
+            <button type="button" onclick="selectColor('#4c0519')" class="color-btn bg-[#4c0519]"></button>
+            <button type="button" onclick="selectColor('#000000')" class="color-btn bg-[#000000]"></button>
+            <button type="button" onclick="selectColor('#ffffff')" class="color-btn bg-[#ffffff]"></button>
+        </div>
+    </div>
+    
+    </div><div class="mt-4"><label class="text-xs text-gray-500 uppercase font-bold">Avatar</label><input type="file" name="avatar" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-900 file:text-indigo-300 hover:file:bg-indigo-800 cursor-pointer mt-2 bg-slate-950 rounded border border-slate-700 p-1"/></div><div><label class="text-xs text-gray-500 uppercase font-bold">Bio</label><textarea name="description" id="modalDescription" rows="3" class="input-dark mt-1"></textarea></div><div class="p-3 bg-slate-950 rounded border border-slate-800"><label class="text-xs text-gray-500 uppercase font-bold block mb-2">Core Stats</label><div class="grid grid-cols-2 gap-2"><input type="text" name="attr_keys" value="Age" class="hidden"><input type="text" id="modalAge" name="attr_values" placeholder="Age" class="input-dark text-xs"><input type="text" name="attr_keys" value="Gender" class="hidden"><input type="text" id="modalGender" name="attr_values" placeholder="Gender" class="input-dark text-xs"><input type="text" name="attr_keys" value="Race" class="hidden"><input type="text" id="modalRace" name="attr_values" placeholder="Race" class="input-dark text-xs"><input type="text" name="attr_keys" value="Orientation" class="hidden"><input type="text" id="modalOrient" name="attr_values" placeholder="Orientation" class="input-dark text-xs"></div></div><div><div class="flex justify-between items-center mb-2"><label class="text-xs text-gray-500 uppercase font-bold">Extra Attributes</label><button type="button" onclick="addAttrRow()" class="text-xs bg-indigo-900 text-indigo-300 px-2 py-1 rounded hover:bg-indigo-800 transition"><i class="fas fa-plus mr-1"></i> Add</button></div><div id="attributesContainer" class="space-y-2"></div></div></div><div class="p-4 border-t border-slate-800 flex justify-end gap-2 bg-slate-900 sticky bottom-0"><button type="button" onclick="document.getElementById('editModal').close()" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition">Cancel</button><button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-sm font-bold">Save Changes</button></div></form></dialog>
     
     <dialog id="importStoryModal" class="rounded-xl bg-slate-900 border border-slate-700 text-gray-200 w-[500px] backdrop:bg-black/80">
         <div class="p-6"><h2 class="text-lg font-bold text-indigo-400 mb-4">Add New Story</h2>
